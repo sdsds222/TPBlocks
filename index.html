@@ -57,48 +57,45 @@
   
   .save-input { padding:10px; border-radius:6px; border:2px solid #ddd; width:250px; font-size:14px; margin-right:8px; }
   
-  /* 虚拟方向键样式 */
-  #virtualControls {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: grid;
-    grid-template-areas: 
-      ". up ."
-      "left . right"
-      ". down .";
-    gap: 10px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    touch-action: none;
-  }
-  
-  .control-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #2b7;
-    color: white;
-    border: none;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.1s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    user-select: none;
-  }
-  
-  .control-btn:active {
-    background: #1a6;
-    transform: scale(0.95);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
+/* 横排方向键样式 */
+#virtualControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 20px;
+  touch-action: none;
+}
+
+/* 按钮样式保持不变 */
+.control-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #2b7;
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.control-btn:active {
+  background: #1a6;
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
   
   #upBtn { grid-area: up; }
   #leftBtn { grid-area: left; }
@@ -192,9 +189,11 @@
   <!-- 虚拟方向键 -->
   <div id="virtualControls">
     <button id="upBtn" class="control-btn">↑</button>
-    <button id="leftBtn" class="control-btn">←</button>
     <button id="downBtn" class="control-btn">↓</button>
+    <button id="leftBtn" class="control-btn">←</button>
     <button id="rightBtn" class="control-btn">→</button>
+    
+    
   </div>
 
 <script>
