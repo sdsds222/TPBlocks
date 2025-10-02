@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -247,22 +247,22 @@
 </head>
 <body>
   <h1>TPBlocks</h1>
-  <div class="mode-indicator" id="modeIndicator">游戏模式</div>
+  <div class="mode-indicator" id="modeIndicator">Game Mode</div>
 
   <div class="panel">
-    <button id="playModeBtn" class="active">游戏模式</button>
-    <button id="endlessModeBtn" class="secondary">无尽模式</button>
-    <button id="editorModeBtn" class="secondary">关卡编辑器</button>
-    <button id="loadLevelBtn" class="secondary">载入关卡</button>
+    <button id="playModeBtn" class="active">Game Mode</button>
+    <button id="endlessModeBtn" class="secondary">Endless Mode</button>
+    <button id="editorModeBtn" class="secondary">Level Editor</button>
+    <button id="loadLevelBtn" class="secondary">Load Level</button>
   </div>
 
   <div id="playView" class="view active">
     <div class="panel">
-      <button id="resetBtn">随机关卡</button>
-      <button id="presetBtn" class="secondary">示例关卡</button>
-      <button id="hardModeBtn" class="secondary">困难模式: 关</button>
+      <button id="resetBtn">Random Level</button>
+      <button id="presetBtn" class="secondary">Example Level</button>
+      <button id="hardModeBtn" class="secondary">Hard Mode: Off</button>
     </div>
-    <div class="score" id="playScore">步数: 0 | 剩余: 5对</div>
+    <div class="score" id="playScore">Moves: 0 | Remaining: 5 pairs</div>
     <div id="playBoard" class="board"></div>
     <div id="playControls" class="virtual-controls">
       <button class="control-btn" data-key="ArrowUp">↑</button>
@@ -272,22 +272,22 @@
     </div>
     <div id="playMsg" class="msg"></div>
     <div class="info">
-      <b>玩法：</b>点击方块选中，用方向键移动。方块可传送，相同数字方块相邻滑动会消除。<br>
-      <b>困难模式：</b>传送门遇到边界无法腾出空间时，传送失败。
+      <b>How to Play:</b> Click a block to select it, use arrow keys to move. Blocks can teleport through portals. Same numbered blocks eliminate when sliding adjacent.<br>
+      <b>Hard Mode:</b> Teleportation fails when portal at boundary cannot make space.
     </div>
   </div>
 
   <div id="endlessView" class="view">
     <div class="difficulty-selector">
-      <button class="difficulty-btn active" data-steps="2">简单 (2步刷新)</button>
-      <button class="difficulty-btn" data-steps="3">普通 (3步刷新)</button>
+      <button class="difficulty-btn active" data-steps="2">Easy (2 move refresh)</button>
+      <button class="difficulty-btn" data-steps="3">Normal (3 move refresh)</button>
     </div>
     <div class="panel">
-      <button id="endlessStartBtn">开始游戏</button>
-      <button id="endlessRestartBtn" class="secondary" style="display:none;">重新开始</button>
-      <button id="endlessHardModeBtn" class="secondary">困难模式: 关</button>
+      <button id="endlessStartBtn">Start Game</button>
+      <button id="endlessRestartBtn" class="secondary" style="display:none;">Restart</button>
+      <button id="endlessHardModeBtn" class="secondary">Hard Mode: Off</button>
     </div>
-    <div class="score" id="endlessScore">移动次数: 0 | 消灭: 0对</div>
+    <div class="score" id="endlessScore">Moves: 0 | Eliminated: 0 pairs</div>
     <div id="endlessBoard" class="board"></div>
     <div id="endlessControls" class="virtual-controls">
       <button class="control-btn" data-key="ArrowUp">↑</button>
@@ -297,29 +297,29 @@
     </div>
     <div id="endlessMsg" class="msg"></div>
     <div class="info">
-      <b>无尽模式：</b>每完成指定步数添加一对新方块，坚持越久得分越高！
+      <b>Endless Mode:</b> New pair added every few moves. Survive as long as possible for higher score!
     </div>
   </div>
 
   <div id="editorView" class="view">
     <div class="panel">
-      <button id="placeBtn">放置方块</button>
-      <button id="deleteBtn">删除方块</button>
-      <button id="clearBtn" class="danger">清空棋盘</button>
+      <button id="placeBtn">Place Block</button>
+      <button id="deleteBtn">Delete Block</button>
+      <button id="clearBtn" class="danger">Clear Board</button>
     </div>
     <div style="margin: 8px 0; font-size: 14px; color: #666;">
-      <span>下一个方块：</span>
+      <span>Next Block:</span>
       <span id="nextBlockPreview" style="display:inline-block; width:32px; height:32px; border-radius:6px; text-align:center; line-height:32px; color:#fff; font-weight:700; margin-left:8px;"></span>
       <span id="nextBlockText" style="margin-left:8px; font-weight:600;"></span>
       <span id="capacityInfo" style="margin-left:16px; font-weight:600; color:#666;"></span>
     </div>
     <div class="panel">
-      <button id="testBtn">▶ 测试关卡</button>
-      <button id="saveBtn">保存关卡</button>
-      <button id="backToEditBtn" class="secondary" style="display:none;">返回编辑</button>
-      <button id="editorHardModeBtn" class="secondary" style="display:none;">困难模式: 关</button>
+      <button id="testBtn">▶ Test Level</button>
+      <button id="saveBtn">Save Level</button>
+      <button id="backToEditBtn" class="secondary" style="display:none;">Back to Edit</button>
+      <button id="editorHardModeBtn" class="secondary" style="display:none;">Hard Mode: Off</button>
     </div>
-    <div class="score" id="editorScore" style="display:none;">步数: 0 | 剩余: 0对</div>
+    <div class="score" id="editorScore" style="display:none;">Moves: 0 | Remaining: 0 pairs</div>
     <div id="editorBoard" class="board"></div>
     <div id="editorControls" class="virtual-controls">
       <button class="control-btn" data-key="ArrowUp">↑</button>
@@ -329,19 +329,19 @@
     </div>
     <div id="editorMsg" class="msg"></div>
     <div id="saveArea" style="display:none; margin-top:8px;">
-      <input type="text" id="levelName" class="save-input" placeholder="输入关卡名称...">
-      <button onclick="saveLevelWithName()">确认</button>
-      <button onclick="cancelSave()" class="secondary">取消</button>
+      <input type="text" id="levelName" class="save-input" placeholder="Enter level name...">
+      <button onclick="saveLevelWithName()">Confirm</button>
+      <button onclick="cancelSave()" class="secondary">Cancel</button>
     </div>
     <div class="info">
-      <b>编辑器：</b>点击"放置方块"，然后点击棋盘两次放置一对配对方块。
+      <b>Editor:</b> Click "Place Block", then click board twice to place a matching pair.
     </div>
   </div>
 
   <div id="loadView" class="view">
     <div class="level-list" id="levelList"></div>
     <div class="info">
-      <b>提示：</b>点击关卡即可载入到游戏模式。
+      <b>Tip:</b> Click a level to load it into Game Mode.
     </div>
   </div>
 
@@ -401,7 +401,7 @@
     activeBtn.classList.remove('secondary');
     activeBtn.classList.add('active');
     
-    const indicators = {play: '游戏模式', endless: '无尽模式', editor: '关卡编辑器', load: '载入关卡'};
+    const indicators = {play: 'Game Mode', endless: 'Endless Mode', editor: 'Level Editor', load: 'Load Level'};
     document.getElementById('modeIndicator').textContent = indicators[view];
     
     if (view === 'play') {
@@ -419,7 +419,7 @@
   document.getElementById('playModeBtn').onclick = () => switchView('play');
   document.getElementById('endlessModeBtn').onclick = () => {
     switchView('endless');
-    showMsg('endless', '选择难度并点击"开始游戏"');
+    showMsg('endless', 'Select difficulty and click "Start Game"');
   };
   document.getElementById('editorModeBtn').onclick = () => switchView('editor');
   document.getElementById('loadLevelBtn').onclick = () => {
@@ -452,7 +452,7 @@
   
   function updateHardModeButton(btnId, isHard) {
     const btn = document.getElementById(btnId);
-    btn.textContent = `困难模式: ${isHard ? '开' : '关'}`;
+    btn.textContent = `Hard Mode: ${isHard ? 'On' : 'Off'}`;
     btn.className = isHard ? 'danger' : 'secondary';
   }
   
@@ -474,7 +474,7 @@
     playStartTime = null;
     updatePlayScore();
     renderBoard('play');
-    showMsg('play', '随机关卡已生成');
+    showMsg('play', 'Random level generated');
   }
 
   function loadPreset(){
@@ -490,7 +490,7 @@
     playStartTime = null;
     updatePlayScore();
     renderBoard('play');
-    showMsg('play', '示例关卡已载入');
+    showMsg('play', 'Example level loaded');
   }
 
   function placeRandomPair(type){
@@ -521,14 +521,14 @@
   
   function updatePlayScore() {
     const remaining = getRemainingPairs();
-    const hardBadge = playHardMode ? '<span class="mode-badge hard">困难</span>' : '';
-    document.getElementById('playScore').innerHTML = `步数: ${playMoves} | 剩余: ${remaining}对${hardBadge}`;
+    const hardBadge = playHardMode ? '<span class="mode-badge hard">Hard</span>' : '';
+    document.getElementById('playScore').innerHTML = `Moves: ${playMoves} | Remaining: ${remaining} pairs${hardBadge}`;
   }
   
   function updateEditorScore() {
     const remaining = getRemainingPairs();
-    const hardBadge = editorHardMode ? '<span class="mode-badge hard">困难</span>' : '';
-    document.getElementById('editorScore').innerHTML = `步数: ${editorMoves} | 剩余: ${remaining}对${hardBadge}`;
+    const hardBadge = editorHardMode ? '<span class="mode-badge hard">Hard</span>' : '';
+    document.getElementById('editorScore').innerHTML = `Moves: ${editorMoves} | Remaining: ${remaining} pairs${hardBadge}`;
   }
 
   function startEndless(){
@@ -548,12 +548,12 @@
     document.getElementById('endlessRestartBtn').style.display = 'inline-block';
     updateEndlessScore();
     renderBoard('endless');
-    showMsg('endless', '无尽模式开始');
+    showMsg('endless', 'Endless mode started');
   }
 
   function updateEndlessScore(){
-    const hardBadge = endlessHardMode ? '<span class="mode-badge hard">困难</span>' : '';
-    document.getElementById('endlessScore').innerHTML = `移动次数: ${endlessMoves} | 消灭: ${endlessEliminated}对 (还需${movesUntilNewBlocks}步添加新方块)${hardBadge}`;
+    const hardBadge = endlessHardMode ? '<span class="mode-badge hard">Hard</span>' : '';
+    document.getElementById('endlessScore').innerHTML = `Moves: ${endlessMoves} | Eliminated: ${endlessEliminated} pairs (${movesUntilNewBlocks} moves until new blocks)${hardBadge}`;
   }
 
   function addRandomPairEndless(){
@@ -604,7 +604,7 @@
     board[spot1.y][spot1.x] = newType;
     board[spot2.y][spot2.x] = newType;
     
-    showMsg('endless', `添加了方块 ${newType}`);
+    showMsg('endless', `Added block ${newType}`);
     return true;
   }
 
@@ -612,7 +612,7 @@
   document.getElementById('endlessRestartBtn').onclick = () => {
     document.getElementById('endlessStartBtn').style.display = 'inline-block';
     document.getElementById('endlessRestartBtn').style.display = 'none';
-    showMsg('endless', '选择难度并点击"开始游戏"');
+    showMsg('endless', 'Select difficulty and click "Start Game"');
   };
 
   function initEditor(){
@@ -628,7 +628,7 @@
     updateNextBlockPreview();
     updateCapacityInfo();
     renderBoard('editor');
-    showMsg('editor', '点击"放置方块"，然后在棋盘上点击两次放置一对方块');
+    showMsg('editor', 'Click "Place Block", then click board twice to place a pair');
   }
 
   function updateCapacityInfo(){
@@ -639,7 +639,7 @@
     
     const capacityText = document.getElementById('capacityInfo');
     if(capacityText){
-      capacityText.textContent = `容量：${currentPairs}/${maxPairs} 对`;
+      capacityText.textContent = `Capacity: ${currentPairs}/${maxPairs} pairs`;
       if(currentPairs >= maxPairs){
         capacityText.style.color = '#e74';
       } else {
@@ -683,11 +683,11 @@
     if(nextBlockNumber > 12){
       preview.style.background = '#999';
       preview.textContent = nextBlockNumber;
-      text.textContent = `方块 ${nextBlockNumber}`;
+      text.textContent = `Block ${nextBlockNumber}`;
     } else {
       preview.className = 'block-' + nextBlockNumber;
       preview.textContent = nextBlockNumber;
-      text.textContent = `方块 ${nextBlockNumber}`;
+      text.textContent = `Block ${nextBlockNumber}`;
     }
   }
 
@@ -703,24 +703,24 @@
 
   document.getElementById('placeBtn').onclick = () => {
     if(!canPlaceMoreBlocks()){
-      showMsg('editor', '棋盘已满');
+      showMsg('editor', 'Board is full');
       return;
     }
     editorMode = 'place';
     placingBlock = null;
     updateEditorButtons();
-    showMsg('editor', '放置模式');
+    showMsg('editor', 'Place mode');
   };
 
   document.getElementById('deleteBtn').onclick = () => {
     editorMode = 'delete';
     placingBlock = null;
     updateEditorButtons();
-    showMsg('editor', '删除模式');
+    showMsg('editor', 'Delete mode');
   };
 
   document.getElementById('clearBtn').onclick = () => {
-    if(countBlocks() > 0 && !confirm('确定要清空整个棋盘吗？')) return;
+    if(countBlocks() > 0 && !confirm('Clear entire board?')) return;
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     editorMode = 'place';
     placingBlock = null;
@@ -729,7 +729,7 @@
     updateNextBlockPreview();
     updateCapacityInfo();
     renderBoard('editor');
-    showMsg('editor', '棋盘已清空');
+    showMsg('editor', 'Board cleared');
   };
 
   document.getElementById('testBtn').onclick = () => {
@@ -743,13 +743,13 @@
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
-        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个`);
+        showMsg('editor', `Error: Block ${type} has only ${typeCounts[type]} piece(s)`);
         return;
       }
     }
     
     if(countBlocks() === 0){
-      showMsg('editor', '棋盘为空');
+      showMsg('editor', 'Board is empty');
       return;
     }
     
@@ -770,7 +770,7 @@
     updateEditorScore();
     
     renderBoard('editor');
-    showMsg('editor', '测试模式');
+    showMsg('editor', 'Test mode');
   };
 
   document.getElementById('backToEditBtn').onclick = () => {
@@ -789,7 +789,7 @@
     updateNextBlockPreview();
     updateCapacityInfo();
     renderBoard('editor');
-    showMsg('editor', '返回编辑模式');
+    showMsg('editor', 'Back to edit mode');
   };
 
   document.getElementById('saveBtn').onclick = () => {
@@ -803,13 +803,13 @@
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
-        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个`);
+        showMsg('editor', `Error: Block ${type} has only ${typeCounts[type]} piece(s)`);
         return;
       }
     }
     
     if(countBlocks() === 0){
-      showMsg('editor', '棋盘为空');
+      showMsg('editor', 'Board is empty');
       return;
     }
     document.getElementById('saveArea').style.display = 'block';
@@ -819,7 +819,7 @@
   window.saveLevelWithName = function(){
     const name = document.getElementById('levelName').value.trim();
     if(!name){
-      showMsg('editor', '请输入关卡名称');
+      showMsg('editor', 'Please enter level name');
       return;
     }
     
@@ -828,13 +828,13 @@
       id: Date.now(),
       name: name,
       board: JSON.stringify(board),
-      createdAt: new Date().toLocaleString('zh-CN')
+      createdAt: new Date().toLocaleString('en-US')
     });
     localStorage.setItem('customLevels', JSON.stringify(levels));
     
     document.getElementById('saveArea').style.display = 'none';
     document.getElementById('levelName').value = '';
-    showMsg('editor', `关卡"${name}"已保存`);
+    showMsg('editor', `Level "${name}" saved`);
   };
 
   window.cancelSave = function(){
@@ -847,11 +847,11 @@
     const listEl = document.getElementById('levelList');
     
     if(levels.length === 0){
-      listEl.innerHTML = '<div style="text-align:center; color:#999; padding:40px;">暂无保存的关卡</div>';
+      listEl.innerHTML = '<div style="text-align:center; color:#999; padding:40px;">No saved levels</div>';
       return;
     }
     
-    listEl.innerHTML = '<h3 style="margin:0 0 12px 0; font-size:16px;">已保存的关卡</h3>';
+    listEl.innerHTML = '<h3 style="margin:0 0 12px 0; font-size:16px;">Saved Levels</h3>';
     levels.forEach(level => {
       const item = document.createElement('div');
       item.className = 'level-item';
@@ -861,8 +861,8 @@
           <div style="font-size:11px; color:#999;">${level.createdAt}</div>
         </div>
         <div>
-          <button class="secondary" onclick="loadCustomLevel(${level.id})">载入</button>
-          <button class="danger" onclick="deleteLevel(${level.id})">删除</button>
+          <button class="secondary" onclick="loadCustomLevel(${level.id})">Load</button>
+          <button class="danger" onclick="deleteLevel(${level.id})">Delete</button>
         </div>
       `;
       listEl.appendChild(item);
@@ -882,12 +882,12 @@
       currentMode = 'play';
       updatePlayScore();
       renderBoard('play');
-      showMsg('play', `已载入关卡：${level.name}`);
+      showMsg('play', `Loaded level: ${level.name}`);
     }
   };
 
   window.deleteLevel = function(id){
-    if(!confirm('确定删除？')) return;
+    if(!confirm('Delete this level?')) return;
     let levels = JSON.parse(localStorage.getItem('customLevels') || '[]');
     levels = levels.filter(l => l.id !== id);
     localStorage.setItem('customLevels', JSON.stringify(levels));
@@ -930,7 +930,7 @@
               }
             }
           }
-          showMsg('editor', `已删除方块 ${deletedType}`);
+          showMsg('editor', `Deleted block ${deletedType}`);
           nextBlockNumber = getNextBlockNumber();
           updateNextBlockPreview();
           updateCapacityInfo();
@@ -939,23 +939,23 @@
         }
       } else {
         if(board[y][x] !== 0){
-          showMsg('editor', '该位置已有方块');
+          showMsg('editor', 'Cell already has a block');
           return;
         }
         
         if(!canPlaceMoreBlocks() && !placingBlock){
-          showMsg('editor', '棋盘已满');
+          showMsg('editor', 'Board is full');
           return;
         }
         
         if(!placingBlock){
           placingBlock = {type: nextBlockNumber, firstPos: {x, y}};
           board[y][x] = nextBlockNumber;
-          showMsg('editor', `放置了第1个方块 ${nextBlockNumber}`);
+          showMsg('editor', `Placed first block ${nextBlockNumber}`);
           renderBoard('editor');
         } else {
           board[y][x] = placingBlock.type;
-          showMsg('editor', `完成方块 ${placingBlock.type} 的配对`);
+          showMsg('editor', `Completed pair for block ${placingBlock.type}`);
           nextBlockNumber++;
           updateNextBlockPreview();
           updateCapacityInfo();
@@ -973,7 +973,7 @@
       }
       selected={x,y};
       renderBoard(mode);
-      showMsg(mode, `选中方块 ${v}`);
+      showMsg(mode, `Selected block ${v}`);
     }
   }
 
@@ -1029,25 +1029,25 @@
     modal.className = 'modal';
     
     const timeStr = formatTime(elapsedTime);
-    const modeText = mode === 'play' ? (playHardMode ? ' [困难模式]' : '') : 
-                     mode === 'editorTest' ? (editorHardMode ? ' [困难模式]' : '') : '';
+    const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') : '';
     
     modal.innerHTML = `
-      <h2>恭喜通关${modeText}</h2>
-      <p>成功消除所有方块！</p>
-      <button onclick="closeModal()">确定</button>
+      <h2>Victory${modeText}</h2>
+      <p>Successfully eliminated all blocks!</p>
+      <button onclick="closeModal()">OK</button>
       <div class="stats">
         <div class="stat-item">
-          <span class="stat-label">完成时间：</span>
+          <span class="stat-label">Time:</span>
           <span class="stat-value">${timeStr}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">消灭对数：</span>
-          <span class="stat-value">${eliminated}对</span>
+          <span class="stat-label">Eliminated:</span>
+          <span class="stat-value">${eliminated} pairs</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">移动步数：</span>
-          <span class="stat-value">${moves}步</span>
+          <span class="stat-label">Moves:</span>
+          <span class="stat-value">${moves}</span>
         </div>
       </div>
     `;
@@ -1071,31 +1071,31 @@
     
     let reason = '';
     if(mode === 'endless') {
-      reason = '<p>无法添加新方块！</p>';
+      reason = '<p>Cannot add new blocks!</p>';
     } else {
-      reason = '<p>没有可行的移动！</p>';
+      reason = '<p>No valid moves available!</p>';
     }
     
-    const modeText = mode === 'play' ? (playHardMode ? ' [困难模式]' : '') : 
-                     mode === 'editorTest' ? (editorHardMode ? ' [困难模式]' : '') :
-                     mode === 'endless' ? (endlessHardMode ? ' [困难模式]' : '') : '';
+    const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') :
+                     mode === 'endless' ? (endlessHardMode ? ' [Hard Mode]' : '') : '';
     
     modal.innerHTML = `
-      <h2>游戏结束${modeText}</h2>
+      <h2>Game Over${modeText}</h2>
       ${reason}
-      <button onclick="closeModal()">确定</button>
+      <button onclick="closeModal()">OK</button>
       <div class="stats">
         <div class="stat-item">
-          <span class="stat-label">耗时：</span>
+          <span class="stat-label">Time:</span>
           <span class="stat-value">${timeStr}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">消灭对数：</span>
-          <span class="stat-value">${eliminated}对</span>
+          <span class="stat-label">Eliminated:</span>
+          <span class="stat-value">${eliminated} pairs</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">移动步数：</span>
-          <span class="stat-value">${moves}步</span>
+          <span class="stat-label">Moves:</span>
+          <span class="stat-value">${moves}</span>
         </div>
       </div>
     `;
@@ -1383,8 +1383,8 @@
     const sType = board[sy][sx];
 
     const nx = sx + dir.x, ny = sy + dir.y;
-    if(!inside(nx,ny)){ showMsg(renderMode, '不能滑出边界'); return; }
-    if(board[ny][nx]===0){ showMsg(renderMode, '不能向空格滑动'); return; }
+    if(!inside(nx,ny)){ showMsg(renderMode, 'Cannot slide out of bounds'); return; }
+    if(board[ny][nx]===0){ showMsg(renderMode, 'Cannot slide to empty cell'); return; }
 
     const neighborType = board[ny][nx];
     
@@ -1418,7 +1418,7 @@
         handleEndlessMode(renderMode);
         
         renderBoard(renderMode);
-        showMsg(renderMode, `方块 ${sType} 消除`);
+        showMsg(renderMode, `Block ${sType} eliminated`);
         
         if(countBlocks() === 0 && currentMode !== 'endless'){
           const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
@@ -1462,7 +1462,7 @@
       if(result.eliminated){
         selected = null;
         incrementEliminatedCounter();
-        showMsg(renderMode, `方块 ${sType} 传送消除`);
+        showMsg(renderMode, `Block ${sType} teleported and eliminated`);
       } else if(result.swap){
         const {swapPortalX, swapPortalY, swapPortalType, finalX, finalY} = result;
         board[sy][sx] = 0;
@@ -1470,13 +1470,13 @@
         board[finalY][finalX] = sType;
         board[sy][sx] = swapPortalType;
         selected = {x:finalX, y:finalY};
-        showMsg(renderMode, `对调完成`);
+        showMsg(renderMode, `Swap complete`);
       } else {
         const {finalX, finalY} = result;
         board[sy][sx] = 0;
         board[finalY][finalX] = sType;
         selected = {x:finalX, y:finalY};
-        showMsg(renderMode, `已移动`);
+        showMsg(renderMode, `Moved`);
       }
       
       incrementMoveCounter();
@@ -1546,7 +1546,7 @@
   }
 
   function resolveTeleportChain(movingX, movingY, movingType, startX, startY, dir, depth, movingBlockSet, originX, originY, potentialSwapPortal, actionSequence, hardMode){
-    if(depth > 50) return {success:false, message:'递归超限'};
+    if(depth > 50) return {success:false, message:'Recursion limit exceeded'};
 
     let encounteredType = board[startY][startX];
     let currentX = startX, currentY = startY;
@@ -1565,11 +1565,11 @@
 
     while(stepGuard++ < 100){
       const posKey = `${currentX},${currentY}`;
-      if(visited.has(posKey)) return {success:false, message:'检测到循环'};
+      if(visited.has(posKey)) return {success:false, message:'Loop detected'};
       visited.add(posKey);
 
       const portal = findOtherOfType(encounteredType, currentX, currentY);
-      if(!portal) return {success:false, message:`找不到配对`};
+      if(!portal) return {success:false, message:`Cannot find pair`};
 
       if(portal.x === originX && portal.y === originY && potentialSwapPortal){
         actionSequence.push({
@@ -1596,12 +1596,12 @@
 
       if(!inside(landX, landY)){
         if(hardMode){
-          return {success:false, message:'困难模式：遇到边界无法传送'};
+          return {success:false, message:'Hard mode: Cannot teleport at boundary'};
         }
         
         const oppX = portal.x - dir.x;
         const oppY = portal.y - dir.y;
-        if(!inside(oppX, oppY)) return {success:false, message:'边界阻挡'};
+        if(!inside(oppX, oppY)) return {success:false, message:'Boundary blocked'};
 
         const oppVal = board[oppY][oppX];
         if(oppVal === 0){
@@ -1633,12 +1633,12 @@
           const portalTargetX = portal.x + reverseDir.x;
           const portalTargetY = portal.y + reverseDir.y;
           
-          if(!inside(portalTargetX, portalTargetY)) return {success:false, message:'传送门无法腾空间'};
+          if(!inside(portalTargetX, portalTargetY)) return {success:false, message:'Portal cannot make space'};
           const portalTargetVal = board[portalTargetY][portalTargetX];
-          if(portalTargetVal === 0) return {success:false, message:'反方向是空格'};
+          if(portalTargetVal === 0) return {success:false, message:'Reverse direction is empty'};
           
           const portalKey = `${portal.x},${portal.y}`;
-          if(movingBlockSet.has(portalKey)) return {success:false, message:'检测到死锁'};
+          if(movingBlockSet.has(portalKey)) return {success:false, message:'Deadlock detected'};
           
           if(portalTargetVal === portalType){
             actionSequence.push({
@@ -1704,7 +1704,7 @@
         }
         
         if(landingVal === movingType){
-          if(landX === movingX && landY === movingY) return {success:false, message:'回到起点'};
+          if(landX === movingX && landY === movingY) return {success:false, message:'Back to start'};
           if(currentX !== portal.x || currentY !== portal.y){
             actionSequence.push({
               type: 'teleport',
@@ -1754,7 +1754,7 @@
         currentX = landX; currentY = landY;
       }
     }
-    return {success:false, message:'超出最大链长度'};
+    return {success:false, message:'Max chain length exceeded'};
   }
 
   function setupVirtualControls() {
