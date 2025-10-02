@@ -8,11 +8,32 @@
   body { font-family: system-ui, -apple-system, "Segoe UI", Arial; display:flex; flex-direction:column; align-items:center; gap:16px; padding:20px; background:#f7f7f7; margin:0; }
   h1 { margin:0; font-size:20px; }
   .mode-indicator { font-size:16px; font-weight:600; color:#666; }
-  .board { display:grid; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px); gap:6px; }
-  .cell { width:64px; height:64px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; cursor:pointer; background:#e6e6e6; color:#fff; box-shadow: inset 0 0 0 2px #ddd; transition: transform 0.1s; }
+  .board { display:grid; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px); gap:6px; position:relative; }
+  .cell { width:64px; height:64px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; cursor:pointer; background:#e6e6e6; color:#fff; box-shadow: inset 0 0 0 2px #ddd; transition: transform 0.1s; position:relative; }
   .cell:hover { transform: scale(1.05); }
   .cell.empty { color:#999; background:#f0f0f0; box-shadow: inset 0 0 0 2px #e4e4e4; }
   .cell.selected { outline: 3px solid #ff9f1c; }
+  
+  .animated-block {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1);
+    pointer-events: none;
+    z-index: 100;
+  }
+  
+  .animating .cell {
+    pointer-events: none;
+  }
+  
   .block-1 { background:#ff6b6b; }
   .block-2 { background:#4ecdc4; }
   .block-3 { background:#ffd166; color:#333; }
@@ -41,10 +62,8 @@
   .msg { min-height:28px; color:#333; font-weight:500; font-size:15px; text-align:center; }
   .score { font-size:18px; font-weight:700; color:#2b7; margin:8px 0; }
   
-  /* 编辑器预览 */
   #nextBlockPreview { box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   
-  /* 关卡列表 */
   .level-list { max-width:500px; background:#fff; border-radius:10px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-height:400px; overflow-y:auto; }
   .level-item { padding:12px; background:#f7f7f7; border-radius:8px; margin-bottom:8px; cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
   .level-item:hover { background:#e0e0e0; transform: translateX(4px); }
@@ -57,62 +76,178 @@
   
   .save-input { padding:10px; border-radius:6px; border:2px solid #ddd; width:250px; font-size:14px; margin-right:8px; }
   
-/* 横排方向键样式 */
-#virtualControls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-top: 20px;
-  touch-action: none;
-}
+  .virtual-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 12px;
+    margin-bottom: 12px;
+    touch-action: none;
+  }
 
-/* 按钮样式保持不变 */
-.control-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #2b7;
-  color: white;
-  border: none;
-  font-size: 20px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.1s;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  user-select: none;
-}
+  .control-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #2b7;
+    color: white;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.1s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    user-select: none;
+  }
 
-.control-btn:active {
-  background: #1a6;
-  transform: scale(0.95);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
+  .control-btn:active {
+    background: #1a6;
+    transform: scale(0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
   
-  #upBtn { grid-area: up; }
-  #leftBtn { grid-area: left; }
-  #downBtn { grid-area: down; }
-  #rightBtn { grid-area: right; }
+  .difficulty-selector {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+  }
   
-  /* 在桌面设备上隐藏虚拟方向键 */
-  @media (min-width: 1024px) {
-    #virtualControls {
-      display: none;
+  .difficulty-btn {
+    padding: 8px 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #666;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+  }
+  
+  .difficulty-btn:hover {
+    border-color: #2b7;
+    color: #2b7;
+  }
+  
+  .difficulty-btn.active {
+    background: #2b7;
+    color: #fff;
+    border-color: #2b7;
+  }
+  
+  .mode-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  
+  .mode-badge.hard {
+    background: #e74;
+    color: #fff;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s;
+  }
+  
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: slideIn 0.3s;
+  }
+  
+  .modal h2 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    color: #2b7;
+  }
+  
+  .modal.gameover h2 {
+    color: #e74;
+  }
+  
+  .modal p {
+    margin: 8px 0 16px 0;
+    font-size: 16px;
+    color: #666;
+  }
+  
+  .modal .stats {
+    background: #f7f7f7;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 20px 0 0 0;
+  }
+  
+  .modal .stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 16px;
+  }
+  
+  .modal .stat-label {
+    color: #666;
+  }
+  
+  .modal .stat-value {
+    font-weight: 700;
+    color: #333;
+  }
+  
+  .modal button {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
     }
   }
 </style>
 </head>
 <body>
   <h1>TPBlocks</h1>
-  <div class="mode-indicator" id="modeIndicator">🎮 游戏模式</div>
+  <div class="mode-indicator" id="modeIndicator">游戏模式</div>
 
   <div class="panel">
     <button id="playModeBtn" class="active">游戏模式</button>
@@ -121,34 +256,51 @@
     <button id="loadLevelBtn" class="secondary">载入关卡</button>
   </div>
 
-  <!-- 游戏模式视图 -->
   <div id="playView" class="view active">
     <div class="panel">
       <button id="resetBtn">随机关卡</button>
       <button id="presetBtn" class="secondary">示例关卡</button>
+      <button id="hardModeBtn" class="secondary">困难模式: 关</button>
     </div>
+    <div class="score" id="playScore">步数: 0 | 剩余: 5对</div>
     <div id="playBoard" class="board"></div>
+    <div id="playControls" class="virtual-controls">
+      <button class="control-btn" data-key="ArrowUp">↑</button>
+      <button class="control-btn" data-key="ArrowDown">↓</button>
+      <button class="control-btn" data-key="ArrowLeft">←</button>
+      <button class="control-btn" data-key="ArrowRight">→</button>
+    </div>
     <div id="playMsg" class="msg"></div>
     <div class="info">
-      <b>玩法：</b>点击方块选中，用方向键移动。方块可传送，相同数字方块相邻滑动会消除。A game designed by sdsds222 (2025)
+      <b>玩法：</b>点击方块选中，用方向键移动。方块可传送，相同数字方块相邻滑动会消除。<br>
+      <b>困难模式：</b>传送门遇到边界无法腾出空间时，传送失败。
     </div>
   </div>
 
-  <!-- 无尽模式视图 -->
   <div id="endlessView" class="view">
+    <div class="difficulty-selector">
+      <button class="difficulty-btn active" data-steps="2">简单 (2步刷新)</button>
+      <button class="difficulty-btn" data-steps="3">普通 (3步刷新)</button>
+    </div>
     <div class="panel">
       <button id="endlessStartBtn">开始游戏</button>
       <button id="endlessRestartBtn" class="secondary" style="display:none;">重新开始</button>
+      <button id="endlessHardModeBtn" class="secondary">困难模式: 关</button>
     </div>
-    <div class="score" id="endlessScore">移动次数: 0</div>
+    <div class="score" id="endlessScore">移动次数: 0 | 消灭: 0对</div>
     <div id="endlessBoard" class="board"></div>
+    <div id="endlessControls" class="virtual-controls">
+      <button class="control-btn" data-key="ArrowUp">↑</button>
+      <button class="control-btn" data-key="ArrowDown">↓</button>
+      <button class="control-btn" data-key="ArrowLeft">←</button>
+      <button class="control-btn" data-key="ArrowRight">→</button>
+    </div>
     <div id="endlessMsg" class="msg"></div>
     <div class="info">
-      <b>无尽模式：</b>每3次成功移动（包括消除、传送、对调）都会添加一对新方块。数字优先递增（1→2→3...），当超过12后会重用已消除的1-12号颜色以保持视觉对比度。当没有空位添加新方块时游戏结束！
+      <b>无尽模式：</b>每完成指定步数添加一对新方块，坚持越久得分越高！
     </div>
   </div>
 
-  <!-- 编辑器视图 -->
   <div id="editorView" class="view">
     <div class="panel">
       <button id="placeBtn">放置方块</button>
@@ -165,8 +317,16 @@
       <button id="testBtn">▶ 测试关卡</button>
       <button id="saveBtn">保存关卡</button>
       <button id="backToEditBtn" class="secondary" style="display:none;">返回编辑</button>
+      <button id="editorHardModeBtn" class="secondary" style="display:none;">困难模式: 关</button>
     </div>
+    <div class="score" id="editorScore" style="display:none;">步数: 0 | 剩余: 0对</div>
     <div id="editorBoard" class="board"></div>
+    <div id="editorControls" class="virtual-controls">
+      <button class="control-btn" data-key="ArrowUp">↑</button>
+      <button class="control-btn" data-key="ArrowDown">↓</button>
+      <button class="control-btn" data-key="ArrowLeft">←</button>
+      <button class="control-btn" data-key="ArrowRight">→</button>
+    </div>
     <div id="editorMsg" class="msg"></div>
     <div id="saveArea" style="display:none; margin-top:8px;">
       <input type="text" id="levelName" class="save-input" placeholder="输入关卡名称...">
@@ -174,26 +334,15 @@
       <button onclick="cancelSave()" class="secondary">取消</button>
     </div>
     <div class="info">
-      <b>编辑器：</b>点击"放置方块"，然后点击棋盘两次放置一对配对方块。自动按顺序编号。棋盘最多放置12对方块（需保留至少1个空格）。
+      <b>编辑器：</b>点击"放置方块"，然后点击棋盘两次放置一对配对方块。
     </div>
   </div>
 
-  <!-- 载入关卡视图 -->
   <div id="loadView" class="view">
     <div class="level-list" id="levelList"></div>
     <div class="info">
-      <b>提示：</b>点击关卡即可载入到游戏模式。在编辑器中保存的关卡会显示在这里。
+      <b>提示：</b>点击关卡即可载入到游戏模式。
     </div>
-  </div>
-
-  <!-- 虚拟方向键 -->
-  <div id="virtualControls">
-    <button id="upBtn" class="control-btn">↑</button>
-    <button id="downBtn" class="control-btn">↓</button>
-    <button id="leftBtn" class="control-btn">←</button>
-    <button id="rightBtn" class="control-btn">→</button>
-    
-    
   </div>
 
 <script>
@@ -204,63 +353,61 @@
   };
 
   let currentView = 'play';
-  let currentMode = 'play'; // play, endless, editor, editorTest
+  let currentMode = 'play';
   let board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
   let selected = null;
   let blocksRemaining = 0;
+  let isAnimating = false;
   
-  // 编辑器状态
-  let editorMode = 'place'; // 'place' or 'delete'
+  let editorMode = 'place';
   let nextBlockNumber = 1;
-  let placingBlock = null; // {type: number, firstPos: {x, y}} 正在放置的方块
+  let placingBlock = null;
   
-  // 无尽模式状态
   let endlessMoves = 0;
-  let endlessNextType = 1; // 下一个要添加的方块类型
+  let endlessNextType = 1;
   let endlessGameOver = false;
-  let movesUntilNewBlocks = 0; // 添加新方块前的剩余移动次数
+  let movesUntilNewBlocks = 0;
+  let endlessRefreshSteps = 2;
+  let endlessEliminated = 0;
+  
+  let playMoves = 0;
+  let editorMoves = 0;
+  let playEliminated = 0;
+  let editorEliminated = 0;
+  
+  let playHardMode = false;
+  let endlessHardMode = false;
+  let editorHardMode = false;
+  
+  let playStartTime = null;
+  let editorStartTime = null;
+  let endlessStartTime = null;
 
   function inside(x,y){ return x>=0 && x<SIZE && y>=0 && y<SIZE; }
 
-  // ========== 视图切换 ==========
   function switchView(view, preserveBoard = false){
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(view + 'View').classList.add('active');
     currentView = view;
     
-    // 更新顶部按钮状态
     const allBtns = document.querySelectorAll('#playModeBtn, #endlessModeBtn, #editorModeBtn, #loadLevelBtn');
     allBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.classList.add('secondary');
     });
     
-    const btnMap = {
-      play: 'playModeBtn',
-      endless: 'endlessModeBtn',
-      editor: 'editorModeBtn',
-      load: 'loadLevelBtn'
-    };
+    const btnMap = {play: 'playModeBtn', endless: 'endlessModeBtn', editor: 'editorModeBtn', load: 'loadLevelBtn'};
     const activeBtn = document.getElementById(btnMap[view]);
     activeBtn.classList.remove('secondary');
     activeBtn.classList.add('active');
     
-    const indicators = {
-      play: '游戏模式',
-      endless: '无尽模式',
-      editor: '关卡编辑器',
-      load: '载入关卡'
-    };
+    const indicators = {play: '游戏模式', endless: '无尽模式', editor: '关卡编辑器', load: '载入关卡'};
     document.getElementById('modeIndicator').textContent = indicators[view];
     
-    // 修复：切换视图时更新当前模式
     if (view === 'play') {
       currentMode = 'play';
-      if(!preserveBoard){
-        resetRandom();
-      } else {
-        renderBoard('play');
-      }
+      if(!preserveBoard){ resetRandom(); } 
+      else { renderBoard('play'); }
     } else if (view === 'endless') {
       currentMode = 'endless';
     } else if (view === 'editor') {
@@ -269,30 +416,63 @@
     }
   }
 
-  document.getElementById('playModeBtn').onclick = () => {
-    switchView('play');
-  };
-  
+  document.getElementById('playModeBtn').onclick = () => switchView('play');
   document.getElementById('endlessModeBtn').onclick = () => {
     switchView('endless');
-    showMsg('endless', '点击"开始游戏"开始无尽挑战！');
+    showMsg('endless', '选择难度并点击"开始游戏"');
   };
-  
-  document.getElementById('editorModeBtn').onclick = () => {
-    switchView('editor');
-  };
-  
+  document.getElementById('editorModeBtn').onclick = () => switchView('editor');
   document.getElementById('loadLevelBtn').onclick = () => {
     switchView('load');
     loadSavedLevels();
   };
 
-  // ========== 游戏模式 ==========
+  document.getElementById('hardModeBtn').onclick = () => {
+    playHardMode = !playHardMode;
+    updateHardModeButton('hardModeBtn', playHardMode);
+    playMoves = 0;
+    playEliminated = 0;
+    playStartTime = null;
+    updatePlayScore();
+  };
+  
+  document.getElementById('endlessHardModeBtn').onclick = () => {
+    endlessHardMode = !endlessHardMode;
+    updateHardModeButton('endlessHardModeBtn', endlessHardMode);
+  };
+  
+  document.getElementById('editorHardModeBtn').onclick = () => {
+    editorHardMode = !editorHardMode;
+    updateHardModeButton('editorHardModeBtn', editorHardMode);
+    editorMoves = 0;
+    editorEliminated = 0;
+    editorStartTime = null;
+    updateEditorScore();
+  };
+  
+  function updateHardModeButton(btnId, isHard) {
+    const btn = document.getElementById(btnId);
+    btn.textContent = `困难模式: ${isHard ? '开' : '关'}`;
+    btn.className = isHard ? 'danger' : 'secondary';
+  }
+  
+  document.querySelectorAll('.difficulty-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      endlessRefreshSteps = parseInt(btn.dataset.steps);
+    };
+  });
+
   function resetRandom(){
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     const pairs = [1,2,3,4,5];
     pairs.forEach(t => placeRandomPair(t));
     selected = null;
+    playMoves = 0;
+    playEliminated = 0;
+    playStartTime = null;
+    updatePlayScore();
     renderBoard('play');
     showMsg('play', '随机关卡已生成');
   }
@@ -305,6 +485,10 @@
     board[1][1]=4; board[3][3]=4;
     board[4][4]=5; board[0][4]=5;
     selected = null;
+    playMoves = 0;
+    playEliminated = 0;
+    playStartTime = null;
+    updatePlayScore();
     renderBoard('play');
     showMsg('play', '示例关卡已载入');
   }
@@ -323,33 +507,56 @@
 
   document.getElementById('resetBtn').onclick = resetRandom;
   document.getElementById('presetBtn').onclick = loadPreset;
+  
+  function getRemainingPairs() {
+    return countBlocks() / 2;
+  }
+  
+  function formatTime(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  function updatePlayScore() {
+    const remaining = getRemainingPairs();
+    const hardBadge = playHardMode ? '<span class="mode-badge hard">困难</span>' : '';
+    document.getElementById('playScore').innerHTML = `步数: ${playMoves} | 剩余: ${remaining}对${hardBadge}`;
+  }
+  
+  function updateEditorScore() {
+    const remaining = getRemainingPairs();
+    const hardBadge = editorHardMode ? '<span class="mode-badge hard">困难</span>' : '';
+    document.getElementById('editorScore').innerHTML = `步数: ${editorMoves} | 剩余: ${remaining}对${hardBadge}`;
+  }
 
-  // ========== 无尽模式 ==========
   function startEndless(){
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
-    // 初始放置3对方块
     placeRandomPair(1);
     placeRandomPair(2);
     placeRandomPair(3);
     endlessMoves = 0;
-    movesUntilNewBlocks = 3; // 初始设置为3，需要3次移动才添加新方块
-    endlessNextType = 4; // 下一个要添加的类型从4开始
+    endlessEliminated = 0;
+    movesUntilNewBlocks = endlessRefreshSteps;
+    endlessNextType = 4;
     endlessGameOver = false;
+    endlessStartTime = null;
     selected = null;
     currentMode = 'endless';
     document.getElementById('endlessStartBtn').style.display = 'none';
     document.getElementById('endlessRestartBtn').style.display = 'inline-block';
     updateEndlessScore();
     renderBoard('endless');
-    showMsg('endless', '无尽模式开始！每3次成功移动添加一对新方块');
+    showMsg('endless', '无尽模式开始');
   }
 
   function updateEndlessScore(){
-    document.getElementById('endlessScore').textContent = `移动次数: ${endlessMoves} (还需${movesUntilNewBlocks}次移动添加新方块)`;
+    const hardBadge = endlessHardMode ? '<span class="mode-badge hard">困难</span>' : '';
+    document.getElementById('endlessScore').innerHTML = `移动次数: ${endlessMoves} | 消灭: ${endlessEliminated}对 (还需${movesUntilNewBlocks}步添加新方块)${hardBadge}`;
   }
 
   function addRandomPairEndless(){
-    // 找出所有空位
     const emptySpots = [];
     for(let y=0; y<SIZE; y++){
       for(let x=0; x<SIZE; x++){
@@ -358,29 +565,23 @@
     }
     
     if(emptySpots.length < 2){
-      // 游戏结束
       endlessGameOver = true;
-      showMsg('endless', `游戏结束！共完成 ${endlessMoves} 次移动！`);
+      const elapsedTime = endlessStartTime ? Date.now() - endlessStartTime : 0;
+      showGameOverModal('endless', endlessMoves, endlessEliminated, elapsedTime);
       return false;
     }
     
     let newType;
-    
-    // 策略：优先使用递增编号，但当编号>12时，检查1-12是否有空闲的可以重用
     if(endlessNextType <= 12){
-      // 编号还在1-12范围内，直接使用
       newType = endlessNextType;
       endlessNextType++;
     } else {
-      // 编号超过12，检查1-12中是否有未使用的
       const usedTypes = new Set();
       for(let y=0; y<SIZE; y++){
         for(let x=0; x<SIZE; x++){
           if(board[y][x] > 0) usedTypes.add(board[y][x]);
         }
       }
-      
-      // 找到1-12中最小的未使用编号
       let foundReuse = false;
       for(let i=1; i<=12; i++){
         if(!usedTypes.has(i)){
@@ -389,15 +590,12 @@
           break;
         }
       }
-      
-      // 如果1-12都在使用，继续递增
       if(!foundReuse){
         newType = endlessNextType;
         endlessNextType++;
       }
     }
     
-    // 随机放置两个位置
     const idx1 = Math.floor(Math.random() * emptySpots.length);
     const spot1 = emptySpots.splice(idx1, 1)[0];
     const idx2 = Math.floor(Math.random() * emptySpots.length);
@@ -406,7 +604,7 @@
     board[spot1.y][spot1.x] = newType;
     board[spot2.y][spot2.x] = newType;
     
-    showMsg('endless', `添加了方块 ${newType}！`);
+    showMsg('endless', `添加了方块 ${newType}`);
     return true;
   }
 
@@ -414,16 +612,18 @@
   document.getElementById('endlessRestartBtn').onclick = () => {
     document.getElementById('endlessStartBtn').style.display = 'inline-block';
     document.getElementById('endlessRestartBtn').style.display = 'none';
-    showMsg('endless', '点击"开始游戏"开始无尽挑战！');
+    showMsg('endless', '选择难度并点击"开始游戏"');
   };
 
-  // ========== 编辑器 ==========
   function initEditor(){
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     selected = null;
     editorMode = 'place';
     nextBlockNumber = 1;
     placingBlock = null;
+    editorMoves = 0;
+    editorEliminated = 0;
+    editorStartTime = null;
     updateEditorButtons();
     updateNextBlockPreview();
     updateCapacityInfo();
@@ -434,12 +634,12 @@
   function updateCapacityInfo(){
     const totalCells = SIZE * SIZE;
     const usedCells = countBlocks();
-    const maxPairs = Math.floor((totalCells - 1) / 2); // 至少留一个空格
+    const maxPairs = Math.floor((totalCells - 1) / 2);
     const currentPairs = usedCells / 2;
     
     const capacityText = document.getElementById('capacityInfo');
     if(capacityText){
-      capacityText.textContent = `容量：${currentPairs}/${maxPairs} 对 (${usedCells}/${totalCells-1} 格)`;
+      capacityText.textContent = `容量：${currentPairs}/${maxPairs} 对`;
       if(currentPairs >= maxPairs){
         capacityText.style.color = '#e74';
       } else {
@@ -451,7 +651,6 @@
   function canPlaceMoreBlocks(){
     const totalCells = SIZE * SIZE;
     const usedCells = countBlocks();
-    // 至少需要留1个空格，所以最多用24个格子（12对方块）
     return usedCells < (totalCells - 1);
   }
 
@@ -459,26 +658,21 @@
     const placeBtn = document.getElementById('placeBtn');
     const deleteBtn = document.getElementById('deleteBtn');
     
-    // 移除所有active class
     placeBtn.classList.remove('active');
     deleteBtn.classList.remove('active');
     
-    // 根据当前模式添加active class
     if(editorMode === 'place'){
       placeBtn.classList.add('active');
     } else {
       deleteBtn.classList.add('active');
     }
     
-    // 检查容量，如果满了禁用放置按钮
     if(!canPlaceMoreBlocks()){
       placeBtn.disabled = true;
       placeBtn.style.opacity = '0.5';
-      placeBtn.style.cursor = 'not-allowed';
     } else {
       placeBtn.disabled = false;
       placeBtn.style.opacity = '1';
-      placeBtn.style.cursor = 'pointer';
     }
   }
 
@@ -498,7 +692,6 @@
   }
 
   function getNextBlockNumber(){
-    // 找出当前最大的方块编号
     let maxNum = 0;
     for(let y=0; y<SIZE; y++){
       for(let x=0; x<SIZE; x++){
@@ -510,20 +703,20 @@
 
   document.getElementById('placeBtn').onclick = () => {
     if(!canPlaceMoreBlocks()){
-      showMsg('editor', '棋盘已满！最多可放置12对方块（需保留至少1个空格）');
+      showMsg('editor', '棋盘已满');
       return;
     }
     editorMode = 'place';
     placingBlock = null;
     updateEditorButtons();
-    showMsg('editor', '放置模式：在棋盘上点击两次放置一对方块');
+    showMsg('editor', '放置模式');
   };
 
   document.getElementById('deleteBtn').onclick = () => {
     editorMode = 'delete';
     placingBlock = null;
     updateEditorButtons();
-    showMsg('editor', '删除模式：点击方块进行删除');
+    showMsg('editor', '删除模式');
   };
 
   document.getElementById('clearBtn').onclick = () => {
@@ -540,84 +733,77 @@
   };
 
   document.getElementById('testBtn').onclick = () => {
-    // 检查是否所有方块都成对
     const typeCounts = {};
     for(let y=0; y<SIZE; y++){
       for(let x=0; x<SIZE; x++){
         const v = board[y][x];
-        if(v > 0){
-          typeCounts[v] = (typeCounts[v] || 0) + 1;
-        }
+        if(v > 0) typeCounts[v] = (typeCounts[v] || 0) + 1;
       }
     }
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
-        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个，必须是2个！`);
+        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个`);
         return;
       }
     }
     
     if(countBlocks() === 0){
-      showMsg('editor', '棋盘为空，无法测试');
+      showMsg('editor', '棋盘为空');
       return;
     }
     
     currentMode = 'editorTest';
     selected = null;
+    editorMoves = 0;
+    editorEliminated = 0;
+    editorStartTime = null;
     document.getElementById('placeBtn').style.display = 'none';
     document.getElementById('deleteBtn').style.display = 'none';
     document.getElementById('testBtn').style.display = 'none';
     document.getElementById('saveBtn').style.display = 'none';
     document.getElementById('nextBlockPreview').parentElement.style.display = 'none';
     document.getElementById('backToEditBtn').style.display = 'inline-block';
-    
-    // 修复：在测试模式下隐藏清空按钮
+    document.getElementById('editorHardModeBtn').style.display = 'inline-block';
     document.getElementById('clearBtn').style.display = 'none';
+    document.getElementById('editorScore').style.display = 'block';
+    updateEditorScore();
     
     renderBoard('editor');
-    showMsg('editor', '测试模式：点击方块，用方向键移动');
+    showMsg('editor', '测试模式');
   };
 
-  // 修复：返回编辑按钮功能
   document.getElementById('backToEditBtn').onclick = () => {
-    // 重新显示编辑器按钮
     document.getElementById('placeBtn').style.display = 'inline-block';
     document.getElementById('deleteBtn').style.display = 'inline-block';
     document.getElementById('testBtn').style.display = 'inline-block';
     document.getElementById('saveBtn').style.display = 'inline-block';
     document.getElementById('nextBlockPreview').parentElement.style.display = 'block';
     document.getElementById('backToEditBtn').style.display = 'none';
+    document.getElementById('editorHardModeBtn').style.display = 'none';
     document.getElementById('clearBtn').style.display = 'inline-block';
+    document.getElementById('editorScore').style.display = 'none';
     
-    // 重置模式
     currentMode = 'editor';
-    
-    // 重新初始化编辑器状态
     updateEditorButtons();
     updateNextBlockPreview();
     updateCapacityInfo();
-    
-    // 重新渲染棋盘
     renderBoard('editor');
     showMsg('editor', '返回编辑模式');
   };
 
   document.getElementById('saveBtn').onclick = () => {
-    // 检查是否所有方块都成对
     const typeCounts = {};
     for(let y=0; y<SIZE; y++){
       for(let x=0; x<SIZE; x++){
         const v = board[y][x];
-        if(v > 0){
-          typeCounts[v] = (typeCounts[v] || 0) + 1;
-        }
+        if(v > 0) typeCounts[v] = (typeCounts[v] || 0) + 1;
       }
     }
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
-        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个！`);
+        showMsg('editor', `错误：方块${type}只有${typeCounts[type]}个`);
         return;
       }
     }
@@ -648,7 +834,7 @@
     
     document.getElementById('saveArea').style.display = 'none';
     document.getElementById('levelName').value = '';
-    showMsg('editor', `关卡"${name}"已保存！`);
+    showMsg('editor', `关卡"${name}"已保存`);
   };
 
   window.cancelSave = function(){
@@ -656,13 +842,12 @@
     document.getElementById('levelName').value = '';
   };
 
-  // ========== 载入关卡 ==========
   function loadSavedLevels(){
     const levels = JSON.parse(localStorage.getItem('customLevels') || '[]');
     const listEl = document.getElementById('levelList');
     
     if(levels.length === 0){
-      listEl.innerHTML = '<div style="text-align:center; color:#999; padding:40px;">暂无保存的关卡<br><small>在关卡编辑器中创建并保存关卡</small></div>';
+      listEl.innerHTML = '<div style="text-align:center; color:#999; padding:40px;">暂无保存的关卡</div>';
       return;
     }
     
@@ -673,54 +858,42 @@
       item.innerHTML = `
         <div>
           <div style="font-weight:600;">${level.name}</div>
-          <div style="font-size:11px; color:#999; margin-top:2px;">${level.createdAt}</div>
+          <div style="font-size:11px; color:#999;">${level.createdAt}</div>
         </div>
         <div>
-          <button class="secondary load-btn" data-id="${level.id}">载入</button>
-          <button class="danger delete-btn" data-id="${level.id}">删除</button>
+          <button class="secondary" onclick="loadCustomLevel(${level.id})">载入</button>
+          <button class="danger" onclick="deleteLevel(${level.id})">删除</button>
         </div>
       `;
-      
-      // 添加事件监听器
-      const loadBtn = item.querySelector('.load-btn');
-      const deleteBtn = item.querySelector('.delete-btn');
-      
-      loadBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        loadCustomLevel(level.id);
-      });
-      
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteLevel(level.id);
-      });
-      
       listEl.appendChild(item);
     });
   }
 
-  function loadCustomLevel(id){
+  window.loadCustomLevel = function(id){
     const levels = JSON.parse(localStorage.getItem('customLevels') || '[]');
     const level = levels.find(l => l.id === id);
     if(level){
       board = JSON.parse(level.board);
       selected = null;
+      playMoves = 0;
+      playEliminated = 0;
+      playStartTime = null;
       switchView('play', true);
       currentMode = 'play';
+      updatePlayScore();
       renderBoard('play');
       showMsg('play', `已载入关卡：${level.name}`);
     }
-  }
+  };
 
-  function deleteLevel(id){
-    if(!confirm('确定删除这个关卡？')) return;
+  window.deleteLevel = function(id){
+    if(!confirm('确定删除？')) return;
     let levels = JSON.parse(localStorage.getItem('customLevels') || '[]');
     levels = levels.filter(l => l.id !== id);
     localStorage.setItem('customLevels', JSON.stringify(levels));
     loadSavedLevels();
-  }
+  };
 
-  // ========== 通用渲染 ==========
   function renderBoard(mode){
     const boardEl = document.getElementById(mode + 'Board');
     boardEl.innerHTML = '';
@@ -748,10 +921,8 @@
   function handleCellClick(x, y, mode){
     if(currentMode === 'editor'){
       if(editorMode === 'delete'){
-        // 删除模式
         if(board[y][x] !== 0){
           const deletedType = board[y][x];
-          // 删除这对方块
           for(let dy=0; dy<SIZE; dy++){
             for(let dx=0; dx<SIZE; dx++){
               if(board[dy][dx] === deletedType){
@@ -767,28 +938,22 @@
           renderBoard('editor');
         }
       } else {
-        // 放置模式
         if(board[y][x] !== 0){
           showMsg('editor', '该位置已有方块');
           return;
         }
         
         if(!canPlaceMoreBlocks() && !placingBlock){
-          showMsg('editor', '棋盘已满！最多12对方块');
+          showMsg('editor', '棋盘已满');
           return;
         }
         
         if(!placingBlock){
-          // 放置第一个
-          placingBlock = {
-            type: nextBlockNumber,
-            firstPos: {x, y}
-          };
+          placingBlock = {type: nextBlockNumber, firstPos: {x, y}};
           board[y][x] = nextBlockNumber;
-          showMsg('editor', `放置了第1个方块 ${nextBlockNumber}，再点击一个空位放置第2个`);
+          showMsg('editor', `放置了第1个方块 ${nextBlockNumber}`);
           renderBoard('editor');
         } else {
-          // 放置第二个
           board[y][x] = placingBlock.type;
           showMsg('editor', `完成方块 ${placingBlock.type} 的配对`);
           nextBlockNumber++;
@@ -800,7 +965,6 @@
         }
       }
     } else {
-      // 游戏模式/测试模式/无尽模式
       const v = board[y][x];
       if(v===0){ 
         selected=null;
@@ -823,7 +987,6 @@
     return c;
   }
 
-  // ========== 游戏逻辑 ==========
   function findOtherOfType(type, excludeX, excludeY){
     for(let y=0;y<SIZE;y++){
       for(let x=0;x<SIZE;x++){
@@ -837,11 +1000,380 @@
     board[toY][toX] = board[fromY][fromX];
     board[fromY][fromX] = 0;
   }
+  
+  function checkDeadlock() {
+    for(let y = 0; y < SIZE; y++) {
+      for(let x = 0; x < SIZE; x++) {
+        if(board[y][x] === 0) continue;
+        
+        const type = board[y][x];
+        for(let dirKey in DIRS) {
+          const dir = DIRS[dirKey];
+          const nx = x + dir.x;
+          const ny = y + dir.y;
+          
+          if(inside(nx, ny) && board[ny][nx] !== 0) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+  
+  function showVictoryModal(mode, moves, eliminated, elapsedTime) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    
+    const timeStr = formatTime(elapsedTime);
+    const modeText = mode === 'play' ? (playHardMode ? ' [困难模式]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [困难模式]' : '') : '';
+    
+    modal.innerHTML = `
+      <h2>恭喜通关${modeText}</h2>
+      <p>成功消除所有方块！</p>
+      <button onclick="closeModal()">确定</button>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">完成时间：</span>
+          <span class="stat-value">${timeStr}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">消灭对数：</span>
+          <span class="stat-value">${eliminated}对</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">移动步数：</span>
+          <span class="stat-value">${moves}步</span>
+        </div>
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    window.closeModal = function() {
+      overlay.remove();
+    };
+  }
+  
+  function showGameOverModal(mode, moves, eliminated, elapsedTime) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal gameover';
+    
+    const timeStr = formatTime(elapsedTime);
+    
+    let reason = '';
+    if(mode === 'endless') {
+      reason = '<p>无法添加新方块！</p>';
+    } else {
+      reason = '<p>没有可行的移动！</p>';
+    }
+    
+    const modeText = mode === 'play' ? (playHardMode ? ' [困难模式]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [困难模式]' : '') :
+                     mode === 'endless' ? (endlessHardMode ? ' [困难模式]' : '') : '';
+    
+    modal.innerHTML = `
+      <h2>游戏结束${modeText}</h2>
+      ${reason}
+      <button onclick="closeModal()">确定</button>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">耗时：</span>
+          <span class="stat-value">${timeStr}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">消灭对数：</span>
+          <span class="stat-value">${eliminated}对</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">移动步数：</span>
+          <span class="stat-value">${moves}步</span>
+        </div>
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    window.closeModal = function() {
+      overlay.remove();
+    };
+  }
+
+  function getCellPosition(x, y, mode) {
+    const boardEl = document.getElementById(mode + 'Board');
+    const index = y * SIZE + x;
+    const cell = boardEl.children[index];
+    if (!cell) return null;
+    const rect = cell.getBoundingClientRect();
+    const boardRect = boardEl.getBoundingClientRect();
+    return {
+      left: rect.left - boardRect.left,
+      top: rect.top - boardRect.top
+    };
+  }
+  
+  function createAnimatedBlock(x, y, blockType, mode) {
+    const boardEl = document.getElementById(mode + 'Board');
+    const index = y * SIZE + x;
+    const cell = boardEl.children[index];
+    
+    const pos = getCellPosition(x, y, mode);
+    if (!pos) return null;
+    
+    if (cell && cell.classList.contains('cell') && !cell.classList.contains('empty')) {
+      for (let i = 1; i <= 20; i++) {
+        cell.classList.remove('block-' + i);
+      }
+      cell.classList.add('empty');
+      cell.textContent = '';
+    }
+    
+    const block = document.createElement('div');
+    block.className = 'animated-block block-' + blockType;
+    block.textContent = blockType;
+    block.style.left = pos.left + 'px';
+    block.style.top = pos.top + 'px';
+    
+    boardEl.appendChild(block);
+    return block;
+  }
+  
+  function animateSlide(block, fromX, fromY, toX, toY, mode, duration = 200) {
+    return new Promise(resolve => {
+      const toPos = getCellPosition(toX, toY, mode);
+      if (!toPos) {
+        resolve();
+        return;
+      }
+      
+      block.style.transition = `all ${duration}ms ease-in-out`;
+      block.style.left = toPos.left + 'px';
+      block.style.top = toPos.top + 'px';
+      
+      setTimeout(resolve, duration);
+    });
+  }
+  
+  function animateSlideInto(block, fromX, fromY, toX, toY, mode, duration = 200) {
+    return new Promise(resolve => {
+      const toPos = getCellPosition(toX, toY, mode);
+      if (!toPos) {
+        resolve();
+        return;
+      }
+      
+      block.style.transition = `all ${duration}ms ease-in-out`;
+      block.style.left = toPos.left + 'px';
+      block.style.top = toPos.top + 'px';
+      block.style.transform = 'scale(0.7)';
+      block.style.opacity = '0.8';
+      block.style.zIndex = '50';
+      
+      setTimeout(resolve, duration);
+    });
+  }
+  
+  function animateSlideOut(block, fromX, fromY, toX, toY, mode, duration = 200) {
+    return new Promise(resolve => {
+      block.style.transform = 'scale(1)';
+      block.style.opacity = '1';
+      block.style.zIndex = '100';
+      
+      const toPos = getCellPosition(toX, toY, mode);
+      if (!toPos) {
+        resolve();
+        return;
+      }
+      
+      setTimeout(() => {
+        block.style.transition = `all ${duration}ms ease-out`;
+        block.style.left = toPos.left + 'px';
+        block.style.top = toPos.top + 'px';
+        
+        setTimeout(resolve, duration);
+      }, 50);
+    });
+  }
+  
+  function animateTeleportInto(block, toX, toY, mode, duration = 150) {
+    return new Promise(resolve => {
+      const toPos = getCellPosition(toX, toY, mode);
+      if (!toPos) {
+        resolve();
+        return;
+      }
+      
+      block.style.transition = `all ${duration}ms ease-in-out`;
+      block.style.left = toPos.left + 'px';
+      block.style.top = toPos.top + 'px';
+      
+      setTimeout(resolve, duration);
+    });
+  }
+  
+  function animateEliminate(block, duration = 300) {
+    return new Promise(resolve => {
+      block.style.transition = `all ${duration}ms ease-in`;
+      block.style.transform = 'scale(1.2)';
+      block.style.opacity = '0';
+      
+      setTimeout(() => {
+        block.remove();
+        resolve();
+      }, duration);
+    });
+  }
+  
+  async function executeAnimationSequence(actionSequence, mode) {
+    const boardEl = document.getElementById(mode + 'Board');
+    boardEl.classList.add('animating');
+    
+    const animatedBlocks = new Map();
+    
+    for (const action of actionSequence) {
+      switch(action.type) {
+        case 'slide': {
+          let block = animatedBlocks.get(action.blockType);
+          if (!block) {
+            block = createAnimatedBlock(action.fromX, action.fromY, action.blockType, mode);
+            if (block) animatedBlocks.set(action.blockType, block);
+          }
+          if (block) {
+            await animateSlide(block, action.fromX, action.fromY, action.toX, action.toY, mode);
+          }
+          break;
+        }
+        
+        case 'slideInto': {
+          let block = animatedBlocks.get(action.blockType);
+          if (!block) {
+            block = createAnimatedBlock(action.fromX, action.fromY, action.blockType, mode);
+            if (block) animatedBlocks.set(action.blockType, block);
+          }
+          if (block) {
+            await animateSlideInto(block, action.fromX, action.fromY, action.toX, action.toY, mode);
+          }
+          break;
+        }
+        
+        case 'slideOut': {
+          const block = animatedBlocks.get(action.blockType);
+          if (block) {
+            await animateSlideOut(block, action.fromX, action.fromY, action.toX, action.toY, mode);
+          }
+          break;
+        }
+        
+        case 'teleport': {
+          const block = animatedBlocks.get(action.blockType);
+          if (block) {
+            await animateTeleportInto(block, action.toX, action.toY, mode, 100);
+          }
+          break;
+        }
+        
+        case 'teleportInto': {
+          const block = animatedBlocks.get(action.blockType);
+          if (block) {
+            await animateTeleportInto(block, action.toX, action.toY, mode);
+          }
+          break;
+        }
+        
+        case 'slideOutAndEliminate': {
+          const block = animatedBlocks.get(action.blockType);
+          if (block) {
+            await animateSlideOut(block, action.fromX, action.fromY, action.toX, action.toY, mode, 150);
+            await animateEliminate(block);
+            animatedBlocks.delete(action.blockType);
+          }
+          break;
+        }
+        
+        case 'eliminate': {
+          const block = animatedBlocks.get(action.blockType);
+          if (block) {
+            await animateEliminate(block);
+            animatedBlocks.delete(action.blockType);
+          }
+          break;
+        }
+        
+        case 'portalMakeSpace': {
+          const portalBlock = createAnimatedBlock(action.portalX, action.portalY, action.portalType, mode);
+          if (portalBlock) {
+            await animateSlide(portalBlock, action.portalX, action.portalY, action.toX, action.toY, mode, 150);
+            
+            const boardEl = document.getElementById(mode + 'Board');
+            const targetIndex = action.toY * SIZE + action.toX;
+            const targetCell = boardEl.children[targetIndex];
+            if (targetCell) {
+              targetCell.classList.remove('empty');
+              targetCell.classList.add('block-' + action.portalType);
+              targetCell.textContent = action.portalType;
+            }
+            
+            portalBlock.remove();
+          }
+          break;
+        }
+        
+        case 'portalEliminate': {
+          const block1 = createAnimatedBlock(action.x1, action.y1, action.blockType, mode);
+          const block2 = createAnimatedBlock(action.x2, action.y2, action.blockType, mode);
+          
+          const promises = [];
+          if (block1) promises.push(animateEliminate(block1, 200));
+          if (block2) promises.push(animateEliminate(block2, 200));
+          
+          await Promise.all(promises);
+          break;
+        }
+        
+        case 'portalPushEliminate': {
+          const portalBlock = createAnimatedBlock(action.portalX, action.portalY, action.portalType, mode);
+          if (portalBlock) {
+            await animateSlide(portalBlock, action.portalX, action.portalY, action.targetX, action.targetY, mode, 150);
+            await animateEliminate(portalBlock, 200);
+          }
+          break;
+        }
+        
+        case 'swap': {
+          const movingBlock = animatedBlocks.get(action.movingType);
+          const swapBlock = createAnimatedBlock(action.swapX, action.swapY, action.swapType, mode);
+          
+          if (movingBlock && swapBlock) {
+            await Promise.all([
+              animateSlide(movingBlock, action.movingX, action.movingY, action.swapX, action.swapY, mode, 250),
+              animateSlide(swapBlock, action.swapX, action.swapY, action.movingX, action.movingY, mode, 250)
+            ]);
+            movingBlock.remove();
+            swapBlock.remove();
+          }
+          break;
+        }
+      }
+    }
+    
+    animatedBlocks.forEach(block => block.remove());
+    boardEl.classList.remove('animating');
+  }
 
   function slideSelected(dirKey){
     if(!selected) return;
     if(currentMode !== 'play' && currentMode !== 'editorTest' && currentMode !== 'endless') return;
     if(currentMode === 'endless' && endlessGameOver) return;
+    if(isAnimating) return;
     
     const dir = DIRS[dirKey];
     if(!dir) return;
@@ -855,130 +1387,181 @@
     if(board[ny][nx]===0){ showMsg(renderMode, '不能向空格滑动'); return; }
 
     const neighborType = board[ny][nx];
+    
+    const isHard = currentMode === 'play' ? playHardMode : 
+                   currentMode === 'editorTest' ? editorHardMode : 
+                   endlessHardMode;
 
     if(neighborType === sType){
-      board[sy][sx] = 0;
-      board[ny][nx] = 0;
-      selected = null;
+      isAnimating = true;
       
-      if(currentMode === 'endless'){
-        endlessMoves++;
-        movesUntilNewBlocks--;
-        updateEndlessScore();
+      if(currentMode === 'play' && !playStartTime) {
+        playStartTime = Date.now();
+      } else if(currentMode === 'editorTest' && !editorStartTime) {
+        editorStartTime = Date.now();
+      } else if(currentMode === 'endless' && !endlessStartTime) {
+        endlessStartTime = Date.now();
+      }
+      
+      const actionSequence = [
+        {type: 'slide', fromX: sx, fromY: sy, toX: nx, toY: ny, blockType: sType},
+        {type: 'eliminate', x1: sx, y1: sy, x2: nx, y2: ny, blockType: sType}
+      ];
+      
+      executeAnimationSequence(actionSequence, renderMode).then(() => {
+        board[sy][sx] = 0;
+        board[ny][nx] = 0;
+        selected = null;
         
-        // 每3次移动添加一对新方块
-        if(movesUntilNewBlocks <= 0){
-          if(!addRandomPairEndless()){
-            renderBoard(renderMode);
-            return;
-          }
-          movesUntilNewBlocks = 3; // 重置计数器
+        incrementMoveCounter();
+        incrementEliminatedCounter();
+        handleEndlessMode(renderMode);
+        
+        renderBoard(renderMode);
+        showMsg(renderMode, `方块 ${sType} 消除`);
+        
+        if(countBlocks() === 0 && currentMode !== 'endless'){
+          const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
+                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
+          const moves = currentMode === 'play' ? playMoves : editorMoves;
+          const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+          showVictoryModal(renderMode, moves, eliminated, elapsedTime);
+        } else if(checkDeadlock() && currentMode !== 'endless') {
+          const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
+                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
+          const moves = currentMode === 'play' ? playMoves : editorMoves;
+          const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+          showGameOverModal(renderMode, moves, eliminated, elapsedTime);
         }
-      }
-      
-      renderBoard(renderMode);
-      showMsg(renderMode, `方块 ${sType} 消除`);
-      if(countBlocks() === 0 && currentMode !== 'endless'){
-        showMsg(renderMode, '恭喜通关！');
-      }
+        
+        isAnimating = false;
+      });
       return;
     }
 
     const movingBlockSet = new Set([`${sx},${sy}`]);
-    const result = resolveTeleportChain(sx, sy, sType, nx, ny, dir, 0, movingBlockSet, sx, sy, null);
+    const actionSequence = [];
+    const result = resolveTeleportChain(sx, sy, sType, nx, ny, dir, 0, movingBlockSet, sx, sy, null, actionSequence, isHard);
     
     if(!result.success){
       showMsg(renderMode, result.message);
       return;
     }
 
-    if(result.eliminated){
-      selected = null;
-      
-      if(currentMode === 'endless'){
-        endlessMoves++;
-        movesUntilNewBlocks--;
-        updateEndlessScore();
-        
-        // 每3次移动添加一对新方块
-        if(movesUntilNewBlocks <= 0){
-          if(!addRandomPairEndless()){
-            renderBoard(renderMode);
-            return;
-          }
-          movesUntilNewBlocks = 3; // 重置计数器
-        }
-      }
-      
-      renderBoard(renderMode);
-      showMsg(renderMode, `方块 ${sType} 传送消除`);
-      if(countBlocks() === 0 && currentMode !== 'endless'){
-        showMsg(renderMode, '恭喜通关！');
-      }
-      return;
-    }
-
-    if(result.swap){
-      const {swapPortalX, swapPortalY, swapPortalType, finalX, finalY} = result;
-      board[sy][sx] = 0;
-      board[swapPortalY][swapPortalX] = 0;
-      board[finalY][finalX] = sType;
-      board[sy][sx] = swapPortalType;
-      selected = {x:finalX, y:finalY};
-      
-      if(currentMode === 'endless'){
-        endlessMoves++;
-        movesUntilNewBlocks--;
-        updateEndlessScore();
-        
-        // 每3次移动添加一对新方块
-        if(movesUntilNewBlocks <= 0){
-          if(!addRandomPairEndless()){
-            renderBoard(renderMode);
-            showMsg(renderMode, `对调成功！游戏结束`);
-            return;
-          }
-          movesUntilNewBlocks = 3; // 重置计数器
-        }
-      }
-      
-      renderBoard(renderMode);
-      showMsg(renderMode, `对调完成`);
-      return;
-    }
-
-    const {finalX, finalY} = result;
-    board[sy][sx] = 0;
-    board[finalY][finalX] = sType;
-    selected = {x:finalX, y:finalY};
+    isAnimating = true;
     
+    if(currentMode === 'play' && !playStartTime) {
+      playStartTime = Date.now();
+    } else if(currentMode === 'editorTest' && !editorStartTime) {
+      editorStartTime = Date.now();
+    } else if(currentMode === 'endless' && !endlessStartTime) {
+      endlessStartTime = Date.now();
+    }
+    
+    executeAnimationSequence(actionSequence, renderMode).then(() => {
+      if(result.eliminated){
+        selected = null;
+        incrementEliminatedCounter();
+        showMsg(renderMode, `方块 ${sType} 传送消除`);
+      } else if(result.swap){
+        const {swapPortalX, swapPortalY, swapPortalType, finalX, finalY} = result;
+        board[sy][sx] = 0;
+        board[swapPortalY][swapPortalX] = 0;
+        board[finalY][finalX] = sType;
+        board[sy][sx] = swapPortalType;
+        selected = {x:finalX, y:finalY};
+        showMsg(renderMode, `对调完成`);
+      } else {
+        const {finalX, finalY} = result;
+        board[sy][sx] = 0;
+        board[finalY][finalX] = sType;
+        selected = {x:finalX, y:finalY};
+        showMsg(renderMode, `已移动`);
+      }
+      
+      incrementMoveCounter();
+      handleEndlessMode(renderMode);
+      
+      renderBoard(renderMode);
+      
+      if(countBlocks() === 0 && currentMode !== 'endless'){
+        const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
+                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
+        const moves = currentMode === 'play' ? playMoves : editorMoves;
+        const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+        showVictoryModal(renderMode, moves, eliminated, elapsedTime);
+      } else if(checkDeadlock() && currentMode !== 'endless') {
+        const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
+                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
+        const moves = currentMode === 'play' ? playMoves : editorMoves;
+        const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+        showGameOverModal(renderMode, moves, eliminated, elapsedTime);
+      }
+      
+      isAnimating = false;
+    });
+  }
+  
+  function incrementMoveCounter() {
+    if(currentMode === 'play') {
+      playMoves++;
+      updatePlayScore();
+    } else if(currentMode === 'editorTest') {
+      editorMoves++;
+      updateEditorScore();
+    }
+  }
+  
+  function incrementEliminatedCounter() {
+    if(currentMode === 'play') {
+      playEliminated++;
+      updatePlayScore();
+    } else if(currentMode === 'editorTest') {
+      editorEliminated++;
+      updateEditorScore();
+    } else if(currentMode === 'endless') {
+      endlessEliminated++;
+      updateEndlessScore();
+    }
+  }
+  
+  function handleEndlessMode(renderMode){
     if(currentMode === 'endless'){
       endlessMoves++;
       movesUntilNewBlocks--;
       updateEndlessScore();
       
-      // 每3次移动添加一对新方块
       if(movesUntilNewBlocks <= 0){
         if(!addRandomPairEndless()){
-          renderBoard(renderMode);
-          showMsg(renderMode, `移动成功！游戏结束`);
           return;
         }
-        movesUntilNewBlocks = 3; // 重置计数器
+        movesUntilNewBlocks = endlessRefreshSteps;
+      }
+      
+      if(checkDeadlock()) {
+        const elapsedTime = endlessStartTime ? Date.now() - endlessStartTime : 0;
+        showGameOverModal('endless', endlessMoves, endlessEliminated, elapsedTime);
       }
     }
-    
-    renderBoard(renderMode);
-    showMsg(renderMode, `已移动`);
   }
 
-  function resolveTeleportChain(movingX, movingY, movingType, startX, startY, dir, depth, movingBlockSet, originX, originY, potentialSwapPortal){
+  function resolveTeleportChain(movingX, movingY, movingType, startX, startY, dir, depth, movingBlockSet, originX, originY, potentialSwapPortal, actionSequence, hardMode){
     if(depth > 50) return {success:false, message:'递归超限'};
 
     let encounteredType = board[startY][startX];
     let currentX = startX, currentY = startY;
     let stepGuard = 0;
     const visited = new Set();
+    
+    actionSequence.push({
+      type: 'slideInto',
+      fromX: movingX,
+      fromY: movingY,
+      toX: startX,
+      toY: startY,
+      blockType: movingType,
+      portalType: encounteredType
+    });
 
     while(stepGuard++ < 100){
       const posKey = `${currentX},${currentY}`;
@@ -989,6 +1572,15 @@
       if(!portal) return {success:false, message:`找不到配对`};
 
       if(portal.x === originX && portal.y === originY && potentialSwapPortal){
+        actionSequence.push({
+          type: 'swap',
+          movingX: movingX,
+          movingY: movingY,
+          movingType: movingType,
+          swapX: potentialSwapPortal.x,
+          swapY: potentialSwapPortal.y,
+          swapType: potentialSwapPortal.type
+        });
         return {
           success: true, swap: true,
           swapPortalX: potentialSwapPortal.x,
@@ -1003,15 +1595,35 @@
       let landY = portal.y + dir.y;
 
       if(!inside(landX, landY)){
+        if(hardMode){
+          return {success:false, message:'困难模式：遇到边界无法传送'};
+        }
+        
         const oppX = portal.x - dir.x;
         const oppY = portal.y - dir.y;
         if(!inside(oppX, oppY)) return {success:false, message:'边界阻挡'};
 
         const oppVal = board[oppY][oppX];
         if(oppVal === 0){
+          actionSequence.push({
+            type: 'portalMakeSpace',
+            portalX: portal.x,
+            portalY: portal.y,
+            toX: oppX,
+            toY: oppY,
+            portalType: encounteredType
+          });
           movePiece(portal.x, portal.y, oppX, oppY);
           landX = portal.x; landY = portal.y;
         } else if(oppVal === encounteredType){
+          actionSequence.push({
+            type: 'portalEliminate',
+            x1: portal.x,
+            y1: portal.y,
+            x2: oppX,
+            y2: oppY,
+            blockType: encounteredType
+          });
           board[portal.y][portal.x] = 0;
           board[oppY][oppX] = 0;
           landX = portal.x; landY = portal.y;
@@ -1029,6 +1641,14 @@
           if(movingBlockSet.has(portalKey)) return {success:false, message:'检测到死锁'};
           
           if(portalTargetVal === portalType){
+            actionSequence.push({
+              type: 'portalPushEliminate',
+              portalX: portal.x,
+              portalY: portal.y,
+              targetX: portalTargetX,
+              targetY: portalTargetY,
+              portalType: portalType
+            });
             board[portal.y][portal.x] = 0;
             board[portalTargetY][portalTargetX] = 0;
             landX = portal.x; landY = portal.y;
@@ -1041,7 +1661,7 @@
               portal.x, portal.y, portalType,
               portalTargetX, portalTargetY,
               reverseDir, depth + 1, newMovingBlockSet,
-              originX, originY, swapInfo
+              originX, originY, swapInfo, actionSequence, hardMode
             );
             
             if(!portalMoveResult.success) return portalMoveResult;
@@ -1060,14 +1680,75 @@
 
       if(inside(landX, landY)){
         const landingVal = board[landY][landX];
-        if(landingVal === 0) return {success:true, finalX: landX, finalY: landY};
+        if(landingVal === 0){
+          if(currentX !== portal.x || currentY !== portal.y){
+            actionSequence.push({
+              type: 'teleport',
+              fromX: currentX,
+              fromY: currentY,
+              toX: portal.x,
+              toY: portal.y,
+              blockType: movingType
+            });
+          }
+          actionSequence.push({
+            type: 'slideOut',
+            fromX: portal.x,
+            fromY: portal.y,
+            toX: landX,
+            toY: landY,
+            blockType: movingType,
+            portalType: encounteredType
+          });
+          return {success:true, finalX: landX, finalY: landY};
+        }
         
         if(landingVal === movingType){
           if(landX === movingX && landY === movingY) return {success:false, message:'回到起点'};
+          if(currentX !== portal.x || currentY !== portal.y){
+            actionSequence.push({
+              type: 'teleport',
+              fromX: currentX,
+              fromY: currentY,
+              toX: portal.x,
+              toY: portal.y,
+              blockType: movingType
+            });
+          }
+          actionSequence.push({
+            type: 'slideOutAndEliminate',
+            fromX: portal.x,
+            fromY: portal.y,
+            toX: landX,
+            toY: landY,
+            blockType: movingType,
+            portalType: encounteredType
+          });
           board[landY][landX] = 0;
           board[movingY][movingX] = 0;
           return {success:true, eliminated:true};
         }
+        
+        if(currentX !== portal.x || currentY !== portal.y){
+          actionSequence.push({
+            type: 'teleport',
+            fromX: currentX,
+            fromY: currentY,
+            toX: portal.x,
+            toY: portal.y,
+            blockType: movingType
+          });
+        }
+        
+        actionSequence.push({
+          type: 'slideInto',
+          fromX: portal.x,
+          fromY: portal.y,
+          toX: landX,
+          toY: landY,
+          blockType: movingType,
+          portalType: landingVal
+        });
         
         encounteredType = landingVal;
         currentX = landX; currentY = landY;
@@ -1076,32 +1757,28 @@
     return {success:false, message:'超出最大链长度'};
   }
 
-  // ========== 虚拟方向键控制 ==========
   function setupVirtualControls() {
-    const upBtn = document.getElementById('upBtn');
-    const leftBtn = document.getElementById('leftBtn');
-    const downBtn = document.getElementById('downBtn');
-    const rightBtn = document.getElementById('rightBtn');
+    const controlSets = [
+      document.getElementById('playControls'),
+      document.getElementById('endlessControls'),
+      document.getElementById('editorControls')
+    ];
     
-    // 添加触摸和鼠标事件
-    [upBtn, leftBtn, downBtn, rightBtn].forEach(btn => {
-      // 触摸事件
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleDirectionPress(btn.dataset.key);
-      });
+    controlSets.forEach(controlSet => {
+      if (!controlSet) return;
       
-      // 鼠标事件
-      btn.addEventListener('mousedown', () => {
-        handleDirectionPress(btn.dataset.key);
+      const buttons = controlSet.querySelectorAll('.control-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          handleDirectionPress(btn.dataset.key);
+        });
+        
+        btn.addEventListener('mousedown', () => {
+          handleDirectionPress(btn.dataset.key);
+        });
       });
     });
-    
-    // 设置按钮的data-key属性
-    upBtn.dataset.key = 'ArrowUp';
-    leftBtn.dataset.key = 'ArrowLeft';
-    downBtn.dataset.key = 'ArrowDown';
-    rightBtn.dataset.key = 'ArrowRight';
   }
   
   function handleDirectionPress(key) {
@@ -1110,7 +1787,6 @@
     }
   }
 
-  // ========== 初始化 ==========
   window.addEventListener('keydown', (e)=>{
     if(DIRS[e.key]){
       e.preventDefault();
@@ -1118,7 +1794,6 @@
     }
   });
 
-  // 初始化
   resetRandom();
   setupVirtualControls();
 </script>
