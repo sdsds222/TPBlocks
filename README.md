@@ -1,4 +1,17 @@
 TPBlocks
+Game demo page: https://sdsds222.itch.io/tpblocks
+Videos:
+https://www.youtube.com/watch?v=EcubvqxEzGI&t=28s
+https://www.bilibili.com/video/BV163HKzREBt
+
+TPBlocks is a unique puzzle elimination game.
+Blocks can slide and teleport through same-numbered teleport blocks to the other side of the board.
+Players must use teleportation, movement, blocking, and chain reactions to cleverly eliminate all blocks and clear the level.
+Key Features:
+Innovative Teleport Mechanic: Blocks enter one teleport and exit another, triggering chain reactions.
+Strategic Puzzle: Movement order and teleport paths determine success.
+
+Level Editor: Create your own levels and challenge friends.
 Online Demo: https://sdsds222.github.io/TPBlocks/
 ![Game OverView](Snipaste_2025-10-03_03-09-46.png)
 Rules and Details: 假设有方块1一对，方块2一对，方块3一对，其中一个方块1可以上下左右滑动一格，但是落点必须有另一个传送方块，不能向空格移动！，如果1向右滑动，右边有一个方块另一个方块是其中一个2或者其中一个3，那么传送滑出到另一个2或者3的右边；如果1上滑且上面有一个方块2或者3，那么也是一样的道理，传送到对应的另一个2或者3的上面，以此类推，上下左右皆可传送。方块都是成对出现的，比如有两个1，两个2，两个3等。方块都是数字标记的，同数字的方块相当于一对传送门。方块不能滑出边界。棋盘为5x5，方块的传送具有传递性，举例子：2向左滑动，左边有1，那么从另一个1方块的左侧向左滑出，但是另一个1方块左侧有3，
