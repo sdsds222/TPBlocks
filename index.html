@@ -228,6 +228,58 @@
     font-size: 16px;
   }
   
+  .about-container {
+    max-width: 500px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .about-container h2 {
+    margin: 0 0 24px 0;
+    font-size: 24px;
+    color: #2b7;
+  }
+  
+  .about-container p {
+    margin: 16px 0;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  .about-container a {
+    color: #2b7;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  
+  .about-container a:hover {
+    color: #1a6;
+  }
+  
+  .about-links {
+    margin: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .about-link-item {
+    background: #f7f7f7;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  
+  .about-link-item:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -254,12 +306,12 @@
     <button id="endlessModeBtn" class="secondary">Endless Mode</button>
     <button id="editorModeBtn" class="secondary">Level Editor</button>
     <button id="loadLevelBtn" class="secondary">Load Level</button>
+    <button id="aboutBtn" class="secondary">About</button>
   </div>
 
   <div id="playView" class="view active">
     <div class="panel">
-      <button id="resetBtn">Random Level</button>
-      <button id="presetBtn" class="secondary">Example Level</button>
+      <button id="resetBtn">Random start</button>
       <button id="hardModeBtn" class="secondary">Hard Mode: Off</button>
     </div>
     <div class="score" id="playScore">Moves: 0 | Remaining: 5 pairs</div>
@@ -345,6 +397,30 @@
     </div>
   </div>
 
+  <div id="aboutView" class="view">
+    <div class="about-container">
+      <h2>About TPBlocks</h2>
+      <p>A game designed by <strong>sdsds222</strong><br>Cony studio (2025)</p>
+      
+      <div class="about-links">
+        <div class="about-link-item">
+          <strong>GitHub Repository</strong><br>
+          <a href="https://github.com/sdsds222/TPBlocks" target="_blank">github.com/sdsds222/TPBlocks</a>
+        </div>
+        
+        <div class="about-link-item">
+          <strong>YouTube</strong><br>
+          <a href="https://www.youtube.com/watch?v=EcubvqxEzGI&t=32s" target="_blank">youtube.com/watch?v=EcubvqxEzGI</a>
+        </div>
+        
+        <div class="about-link-item">
+          <strong>Bilibili Video</strong><br>
+          <a href="https://www.bilibili.com/video/BV163HKzREBt" target="_blank">bilibili.com/video/BV163HKzREBt</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   const SIZE = 5;
   const DIRS = {
@@ -390,18 +466,18 @@
     document.getElementById(view + 'View').classList.add('active');
     currentView = view;
     
-    const allBtns = document.querySelectorAll('#playModeBtn, #endlessModeBtn, #editorModeBtn, #loadLevelBtn');
+    const allBtns = document.querySelectorAll('#playModeBtn, #endlessModeBtn, #editorModeBtn, #loadLevelBtn, #aboutBtn');
     allBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.classList.add('secondary');
     });
     
-    const btnMap = {play: 'playModeBtn', endless: 'endlessModeBtn', editor: 'editorModeBtn', load: 'loadLevelBtn'};
+    const btnMap = {play: 'playModeBtn', endless: 'endlessModeBtn', editor: 'editorModeBtn', load: 'loadLevelBtn', about: 'aboutBtn'};
     const activeBtn = document.getElementById(btnMap[view]);
     activeBtn.classList.remove('secondary');
     activeBtn.classList.add('active');
     
-    const indicators = {play: 'Game Mode', endless: 'Endless Mode', editor: 'Level Editor', load: 'Load Level'};
+    const indicators = {play: 'Game Mode', endless: 'Endless Mode', editor: 'Level Editor', load: 'Load Level', about: 'About'};
     document.getElementById('modeIndicator').textContent = indicators[view];
     
     if (view === 'play') {
@@ -426,6 +502,7 @@
     switchView('load');
     loadSavedLevels();
   };
+  document.getElementById('aboutBtn').onclick = () => switchView('about');
 
   document.getElementById('hardModeBtn').onclick = () => {
     playHardMode = !playHardMode;
@@ -477,22 +554,6 @@
     showMsg('play', 'Random level generated');
   }
 
-  function loadPreset(){
-    board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
-    board[0][2]=1; board[0][3]=1;
-    board[0][0]=2; board[0][1]=2;
-    board[2][2]=3; board[2][4]=3;
-    board[1][1]=4; board[3][3]=4;
-    board[4][4]=5; board[0][4]=5;
-    selected = null;
-    playMoves = 0;
-    playEliminated = 0;
-    playStartTime = null;
-    updatePlayScore();
-    renderBoard('play');
-    showMsg('play', 'Example level loaded');
-  }
-
   function placeRandomPair(type){
     let placed = 0;
     while(placed < 2){
@@ -506,7 +567,6 @@
   }
 
   document.getElementById('resetBtn').onclick = resetRandom;
-  document.getElementById('presetBtn').onclick = loadPreset;
   
   function getRemainingPairs() {
     return countBlocks() / 2;
