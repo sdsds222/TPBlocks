@@ -285,28 +285,14 @@
   }
   
   .campaign-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     max-width: 650px;
     width: 100%;
     padding: 0 10px;
-  }
-  
-  @media (max-width: 600px) {
-    .campaign-grid {
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      padding: 0 8px;
-    }
-  }
-  
-  @media (max-width: 400px) {
-    .campaign-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      padding: 0 5px;
-    }
+    box-sizing: border-box;
+    justify-content: center;
   }
   
   .campaign-level-card {
@@ -583,7 +569,7 @@
         
         <div class="about-link-item">
           <strong>YouTube</strong><br>
-          <a href="https://www.youtube.com/watch?v=EcubvqxEzGI&t=32s" target="_blank">youtube.com/watch?v=EcubvqxEzGI</a>
+          <a href="https://www.youtube.com/watch?v=EcubvqxEzGI&t=28s" target="_blank">youtube.com/watch?v=EcubvqxEzGI</a>
         </div>
         
         <div class="about-link-item">
@@ -877,9 +863,34 @@
     
     const levels = CAMPAIGN_LEVELS;
     
+    // 动态计算卡片宽度
+    const calculateCardWidth = () => {
+      const gridWidth = grid.offsetWidth || window.innerWidth - 40;
+      const gap = 12;
+      let columns;
+      
+      if (gridWidth < 400) {
+        columns = 2;
+      } else if (gridWidth < 600) {
+        columns = 3;
+      } else {
+        columns = 4;
+      }
+      
+      const totalGap = gap * (columns - 1);
+      const cardWidth = Math.floor((gridWidth - totalGap) / columns);
+      
+      return { cardWidth, columns };
+    };
+    
+    const { cardWidth } = calculateCardWidth();
+    
     levels.forEach(level => {
       const card = document.createElement('div');
       card.className = 'campaign-level-card';
+      card.style.width = cardWidth + 'px';
+      card.style.minWidth = cardWidth + 'px';
+      card.style.flexShrink = '0';
       
       const unlocked = isLevelUnlocked(level.id, mode);
       const completed = isLevelCompleted(level.id, mode);
@@ -2794,6 +2805,17 @@
 
   renderCampaignGrid(currentCampaignMode);
   setupVirtualControls();
+  
+  // 监听窗口大小改变，重新渲染关卡网格
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (currentView === 'campaign') {
+        renderCampaignGrid(currentCampaignMode);
+      }
+    }, 250);
+  });
 </script>
 </body>
 </html>
