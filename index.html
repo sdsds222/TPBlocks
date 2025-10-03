@@ -2806,15 +2806,32 @@
   renderCampaignGrid(currentCampaignMode);
   setupVirtualControls();
   
-  // 监听窗口大小改变，重新渲染关卡网格
+// 监听窗口大小改变，重新渲染关卡网格
   let resizeTimer;
+  let lastWidth = window.innerWidth;
+  
   window.addEventListener('resize', () => {
+    const currentWidth = window.innerWidth;
+    
+    // 只在宽度变化时处理，忽略移动端地址栏导致的高度变化
+    if (Math.abs(currentWidth - lastWidth) < 5) return;
+    
+    lastWidth = currentWidth;
     clearTimeout(resizeTimer);
+    
     resizeTimer = setTimeout(() => {
       if (currentView === 'campaign') {
+        // 保存当前滚动位置
+        const scrollPosition = window.scrollY || window.pageYOffset;
+        
         renderCampaignGrid(currentCampaignMode);
+        
+        // 恢复滚动位置
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollPosition);
+        });
       }
-    }, 250);
+    }, 400);
   });
 </script>
 </body>
