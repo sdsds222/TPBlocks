@@ -290,6 +290,23 @@
     gap: 12px;
     max-width: 650px;
     width: 100%;
+    padding: 0 10px;
+  }
+  
+  @media (max-width: 600px) {
+    .campaign-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 0 8px;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .campaign-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 0 5px;
+    }
   }
   
   .campaign-level-card {
@@ -301,6 +318,20 @@
     transition: all 0.2s;
     text-align: center;
     border: 3px solid transparent;
+  }
+  
+  @media (max-width: 600px) {
+    .campaign-level-card {
+      padding: 15px;
+      border-radius: 10px;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .campaign-level-card {
+      padding: 12px;
+      border-radius: 8px;
+    }
   }
   
   .campaign-level-card:hover:not(.locked) {
@@ -330,6 +361,20 @@
     font-weight: 800;
     color: #2b7;
     margin-bottom: 8px;
+  }
+  
+  @media (max-width: 600px) {
+    .campaign-level-number {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .campaign-level-number {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
   }
   
   .campaign-level-card.locked .campaign-level-number {
@@ -671,7 +716,6 @@
   let currentCampaignMode = 'normal';
   let maxMovesForLevel = null;
 
-  // 音效系统
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   
   function playSlideSound() {
@@ -716,7 +760,6 @@
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
     
-    // 柔和的爆炸效果：从中频降到低频
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
     oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
@@ -2049,7 +2092,6 @@
       
       const blockColor = window.getComputedStyle(block).backgroundColor;
       
-      // 增加粒子数量到50个
       const particleCount = 50;
       const particles = [];
       
@@ -2062,7 +2104,6 @@
         particle.style.borderRadius = '50%';
         particle.style.backgroundColor = blockColor;
         
-        // 粒子从方块内随机位置开始
         const startX = blockLeft + Math.random() * blockWidth;
         const startY = blockTop + Math.random() * blockHeight;
         particle.style.left = startX + 'px';
@@ -2072,9 +2113,7 @@
         boardEl.appendChild(particle);
         particles.push(particle);
         
-        // 水平随机扩散
         const tx = (Math.random() - 0.5) * 90;
-        // 下落距离
         const ty = 70 + Math.random() * 50;
         
         particle.style.transition = `all ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
@@ -2085,7 +2124,6 @@
         }, 20);
       }
       
-      // 方块缩小并透明消失
       block.style.transition = `all ${duration * 0.5}ms ease-in`;
       block.style.transform = 'scale(0)';
       block.style.opacity = '0';
@@ -2164,24 +2202,19 @@
           
           if (movingBlock) {
             playSlideSound();
-            // 确保移动方块在最上层
             movingBlock.style.zIndex = '140';
             
-            // 滑出动画
             await animateSlideOut(movingBlock, action.fromX, action.fromY, action.toX, action.toY, mode, 150);
             
-            // 滑出后，为目标位置创建方块（被碰撞的方块），层次低一些
             const targetBlock = createAnimatedBlock(action.toX, action.toY, action.blockType, mode);
             if (targetBlock) {
               targetBlock.style.zIndex = '110';
             }
             
-            // 等待目标方块渲染
             await new Promise(resolve => setTimeout(resolve, 10));
             
             playEliminateSound();
             
-            // 两个方块同时消除
             const animations = [animateEliminate(movingBlock)];
             if (targetBlock) {
               animations.push(animateEliminate(targetBlock));
@@ -2204,7 +2237,6 @@
             animatedBlocks.delete(action.blockType);
           }
           
-          // 为被碰撞的另一个方块也创建粒子动画
           if (action.x2 !== undefined && action.y2 !== undefined) {
             const block2 = createAnimatedBlock(action.x2, action.y2, action.blockType, mode);
             if (block2) {
@@ -2212,7 +2244,6 @@
             }
           }
           
-          // 两个方块同时播放动画
           await Promise.all(animations);
           break;
         }
@@ -2258,7 +2289,6 @@
         }
         
         case 'swap': {
-          // 暂时没有动画，直接跳过
           break;
         }
       }
