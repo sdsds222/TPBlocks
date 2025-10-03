@@ -7,7 +7,7 @@ https://sdsds222.github.io/TPBlocks/
 
 Videos:
 
-https://www.youtube.com/watch?v=EcubvqxEzGI&t=28s
+[https://www.youtube.com/watch?v=EcubvqxEzGI&t=28s](https://youtu.be/EVvDsldqYJE)
 
 https://www.bilibili.com/video/BV163HKzREBt
 
