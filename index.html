@@ -68,6 +68,9 @@
   .level-item { padding:12px; background:#f7f7f7; border-radius:8px; margin-bottom:8px; cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
   .level-item:hover { background:#e0e0e0; transform: translateX(4px); }
   .level-item button { padding:6px 12px; font-size:12px; margin-left:8px; }
+  .level-item.locked { opacity: 0.5; cursor: not-allowed; }
+  .level-item.locked:hover { background:#f7f7f7; transform: none; }
+  .level-item.completed { background:#d4edda; border: 2px solid #28a745; }
   
   .info { max-width:680px; font-size:13px; line-height:1.5; color:#666; background:#fff; padding:10px 14px; border-radius:8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-top:8px; }
   
@@ -75,6 +78,7 @@
   .view.active { display:flex; flex-direction:column; align-items:center; gap:16px; }
   
   .save-input { padding:10px; border-radius:6px; border:2px solid #ddd; width:250px; font-size:14px; margin-right:8px; }
+  .moves-input { padding:8px; border-radius:6px; border:2px solid #ddd; width:100px; font-size:14px; }
   
   .virtual-controls {
     display: flex;
@@ -280,6 +284,97 @@
     transform: translateY(-2px);
   }
   
+  .campaign-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    max-width: 650px;
+    width: 100%;
+  }
+  
+  .campaign-level-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    border: 3px solid transparent;
+  }
+  
+  .campaign-level-card:hover:not(.locked) {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    border-color: #2b7;
+  }
+  
+  .campaign-level-card.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f5f5f5;
+  }
+  
+  .campaign-level-card.completed {
+    border-color: #28a745;
+    background: #d4edda;
+  }
+  
+  .campaign-level-card.current {
+    border-color: #2b7;
+    box-shadow: 0 4px 12px rgba(43, 119, 119, 0.3);
+  }
+  
+  .campaign-level-number {
+    font-size: 32px;
+    font-weight: 800;
+    color: #2b7;
+    margin-bottom: 8px;
+  }
+  
+  .campaign-level-card.locked .campaign-level-number {
+    color: #999;
+  }
+  
+  .campaign-level-card.completed .campaign-level-number {
+    color: #28a745;
+  }
+  
+  .campaign-level-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+  }
+  
+  .campaign-level-card.completed .campaign-level-status {
+    color: #28a745;
+  }
+  
+  .campaign-level-card.locked .campaign-level-status {
+    color: #999;
+  }
+  
+  .difficulty-label {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  
+  .difficulty-easy { background: #d4edda; color: #155724; }
+  .difficulty-medium { background: #fff3cd; color: #856404; }
+  .difficulty-hard { background: #f8d7da; color: #721c24; }
+  
+  .moves-limit-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -299,17 +394,45 @@
 </head>
 <body>
   <h1>TPBlocks</h1>
-  <div class="mode-indicator" id="modeIndicator">Game Mode</div>
+  <div class="mode-indicator" id="modeIndicator">Campaign Mode</div>
 
   <div class="panel">
-    <button id="playModeBtn" class="active">Game Mode</button>
+    <button id="campaignModeBtn" class="active">Campaign Mode</button>
+    <button id="playModeBtn" class="secondary">Random Mode</button>
     <button id="endlessModeBtn" class="secondary">Endless Mode</button>
     <button id="editorModeBtn" class="secondary">Level Editor</button>
     <button id="loadLevelBtn" class="secondary">Load Level</button>
     <button id="aboutBtn" class="secondary">About</button>
   </div>
 
-  <div id="playView" class="view active">
+  <div id="campaignView" class="view active">
+    <div class="campaign-grid" id="campaignGrid"></div>
+    <div class="info">
+      <b>Campaign Mode:</b> Complete levels in order. Each level must be cleared to unlock the next one. Try to beat your best score!
+    </div>
+  </div>
+
+  <div id="campaignPlayView" class="view">
+    <div class="panel">
+      <button id="campaignBackBtn" class="secondary">← Back to Levels</button>
+      <button id="campaignRestartBtn" class="secondary">Restart Level</button>
+    </div>
+    <div class="score" id="campaignScore">Moves: 0 | Remaining: 0 pairs</div>
+    <div id="campaignBoard" class="board"></div>
+    <div id="campaignControls" class="virtual-controls">
+      <button class="control-btn" data-key="ArrowUp">↑</button>
+      <button class="control-btn" data-key="ArrowDown">↓</button>
+      <button class="control-btn" data-key="ArrowLeft">←</button>
+      <button class="control-btn" data-key="ArrowRight">→</button>
+    </div>
+    <div id="campaignMsg" class="msg"></div>
+    <div class="info">
+      <b>How to Play:</b> Click a block to select it, use arrow keys to move. Blocks can teleport through portals. Same numbered blocks eliminate when sliding adjacent.<br>
+      <b>Move Limit:</b> Complete the puzzle within the allowed number of moves!
+    </div>
+  </div>
+
+  <div id="playView" class="view">
     <div class="panel">
       <button id="resetBtn">Random start</button>
       <button id="hardModeBtn" class="secondary">Hard Mode: Off</button>
@@ -365,6 +488,11 @@
       <span id="nextBlockText" style="margin-left:8px; font-weight:600;"></span>
       <span id="capacityInfo" style="margin-left:16px; font-weight:600; color:#666;"></span>
     </div>
+    <div class="moves-limit-setting">
+      <label for="maxMovesInput">Move Limit (optional):</label>
+      <input type="number" id="maxMovesInput" class="moves-input" min="1" placeholder="∞" />
+      <span style="color:#999; font-size:12px;">(Leave empty for unlimited)</span>
+    </div>
     <div class="panel">
       <button id="testBtn">▶ Test Level</button>
       <button id="saveBtn">Save Level</button>
@@ -386,21 +514,21 @@
       <button onclick="cancelSave()" class="secondary">Cancel</button>
     </div>
     <div class="info">
-      <b>Editor:</b> Click "Place Block", then click board twice to place a matching pair.
+      <b>Editor:</b> Click "Place Block", then click board twice to place a matching pair. Set a move limit for challenge!
     </div>
   </div>
 
   <div id="loadView" class="view">
     <div class="level-list" id="levelList"></div>
     <div class="info">
-      <b>Tip:</b> Click a level to load it into Game Mode.
+      <b>Tip:</b> Click a level to load it into Random Mode with its settings.
     </div>
   </div>
 
   <div id="aboutView" class="view">
     <div class="about-container">
       <h2>About TPBlocks</h2>
-      <p>A game designed by <strong>sdsds222</strong><br>Cony studio (2025)</p>
+      <p>A game designed by <strong>sdsds222</strong><br>Cony studio (2025)<br><span style="color: #2b7; font-weight: 600;">Version 1.5</span></p>
       
       <div class="about-links">
         <div class="about-link-item">
@@ -428,8 +556,81 @@
     ArrowLeft: {x:-1, y:0}, ArrowRight: {x:1, y:0}
   };
 
-  let currentView = 'play';
-  let currentMode = 'play';
+  const CAMPAIGN_LEVELS = [
+    {
+      id: 1,
+      name: "",
+      difficulty: "easy",
+      maxMoves: 1,
+      board: [[0,0,0,0,0],[0,0,1,1,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+    },
+    {
+      id: 2,
+      name: "",
+      difficulty: "easy",
+      maxMoves: 4,
+      board: [[0,0,0,0,0],[1,2,0,0,0],[0,1,0,0,0],[0,2,0,0,0],[0,0,0,0,0]]
+    },
+    {
+      id: 3,
+      name: "",
+      difficulty: "",
+      maxMoves: 4,
+      board: [[1,0,0,0,0],[2,3,0,0,0],[0,2,1,0,0],[0,0,3,0,0],[0,0,0,0,0]]
+    },
+    {
+      id: 4,
+      name: "",
+      difficulty: "medium",
+      maxMoves: 10,
+      board: [[1,2,0,0,0],[0,3,4,0,0],[3,0,1,0,0],[0,4,0,2,0],[0,0,0,0,0]]
+    },
+    {
+      id: 5,
+      name: "",
+      difficulty: "medium",
+      maxMoves: 13,
+      board: [[0,1,2,0,0],[3,4,0,5,0],[0,0,3,1,0],[0,5,4,0,0],[0,0,2,0,0]]
+    },
+    {
+      id: 6,
+      name: "",
+      difficulty: "medium",
+      maxMoves: 10,
+      board: [[1,2,3,0,0],[4,5,6,0,0],[0,4,1,0,0],[0,6,5,3,0],[0,0,2,0,0]]
+    },
+    {
+      id: 7,
+      name: "",
+      difficulty: "hard",
+      maxMoves: 13,
+      board: [[1,0,0,0,0],[2,3,0,0,7],[0,4,5,6,0],[0,0,3,2,7],[0,6,5,4,1]]
+    },
+    {
+      id: 8,
+      name: "",
+      difficulty: "hard",
+      maxMoves: 16,
+      board: [[1,2,0,3,0],[4,5,6,0,0],[7,0,4,1,0],[0,3,7,5,8],[0,6,0,2,8]]
+    },
+    {
+      id: 9,
+      name: "",
+      difficulty: "hard",
+      maxMoves: 14,
+      board: [[1,2,3,4,0],[5,6,0,7,8],[0,5,9,0,1],[8,7,0,6,9],[0,4,3,2,0]]
+    },
+    {
+      id: 10,
+      name: "final level",
+      difficulty: "hard",
+      maxMoves: 23,
+      board: [[1,2,3,0,4],[5,6,7,8,0],[0,9,0,5,1],[8,0,6,9,0],[4,7,0,3,2]]
+    }
+  ];
+
+  let currentView = 'campaign';
+  let currentMode = 'campaign';
   let board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
   let selected = null;
   let blocksRemaining = 0;
@@ -438,6 +639,7 @@
   let editorMode = 'place';
   let nextBlockNumber = 1;
   let placingBlock = null;
+  let editorMaxMoves = null;
   
   let endlessMoves = 0;
   let endlessNextType = 1;
@@ -450,40 +652,330 @@
   let editorMoves = 0;
   let playEliminated = 0;
   let editorEliminated = 0;
+  let campaignMoves = 0;
+  let campaignEliminated = 0;
   
   let playHardMode = false;
   let endlessHardMode = false;
   let editorHardMode = false;
+  let campaignHardMode = false;
   
   let playStartTime = null;
   let editorStartTime = null;
   let endlessStartTime = null;
+  let campaignStartTime = null;
+  
+  let savedEditorBoard = null;
+  
+  let currentCampaignLevel = null;
+  let currentCampaignMode = 'normal';
+  let maxMovesForLevel = null;
+
+  // 音效系统
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  function playSlideSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
+  
+  function playTeleportSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(500, audioContext.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
+  
+  function playEliminateSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // 柔和的爆炸效果：从中频降到低频
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  }
+  
+  function playErrorSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.15);
+    
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+  }
+  
+  function playSelectSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.05);
+  }
+  
+  function playClickSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+    
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.08);
+  }
 
   function inside(x,y){ return x>=0 && x<SIZE && y>=0 && y<SIZE; }
+
+  function getCampaignProgress(mode = 'normal') {
+    const saved = localStorage.getItem(`campaignProgress_${mode}`);
+    return saved ? JSON.parse(saved) : { completedLevels: [], bestMoves: {} };
+  }
+
+  function saveCampaignProgress(completedLevels, mode = 'normal', bestMoves = {}) {
+    localStorage.setItem(`campaignProgress_${mode}`, JSON.stringify({ completedLevels, bestMoves }));
+  }
+
+  function getBestMoves(levelId, mode = 'normal') {
+    const progress = getCampaignProgress(mode);
+    return progress.bestMoves ? progress.bestMoves[levelId] : null;
+  }
+
+  function updateBestMoves(levelId, moves, mode = 'normal') {
+    const progress = getCampaignProgress(mode);
+    const currentBest = progress.bestMoves?.[levelId];
+    
+    if (!currentBest || moves < currentBest) {
+      if (!progress.bestMoves) progress.bestMoves = {};
+      progress.bestMoves[levelId] = moves;
+      saveCampaignProgress(progress.completedLevels, mode, progress.bestMoves);
+      return true;
+    }
+    return false;
+  }
+
+  function isLevelUnlocked(levelId, mode = 'normal') {
+    if (levelId === 1) return true;
+    const progress = getCampaignProgress(mode);
+    return progress.completedLevels.includes(levelId - 1);
+  }
+
+  function isLevelCompleted(levelId, mode = 'normal') {
+    const progress = getCampaignProgress(mode);
+    return progress.completedLevels.includes(levelId);
+  }
+
+  function markLevelCompleted(levelId, mode = 'normal') {
+    const progress = getCampaignProgress(mode);
+    if (!progress.completedLevels.includes(levelId)) {
+      progress.completedLevels.push(levelId);
+      saveCampaignProgress(progress.completedLevels, mode, progress.bestMoves || {});
+    }
+  }
+
+  function renderCampaignGrid(mode = 'normal') {
+    const grid = document.getElementById('campaignGrid');
+    grid.innerHTML = '';
+    
+    const levels = CAMPAIGN_LEVELS;
+    
+    levels.forEach(level => {
+      const card = document.createElement('div');
+      card.className = 'campaign-level-card';
+      
+      const unlocked = isLevelUnlocked(level.id, mode);
+      const completed = isLevelCompleted(level.id, mode);
+      const bestMoves = getBestMoves(level.id, mode);
+      
+      if (!unlocked) {
+        card.classList.add('locked');
+      } else if (completed) {
+        card.classList.add('completed');
+      } else {
+        card.classList.add('current');
+      }
+      
+      const difficultyClass = `difficulty-${level.difficulty}`;
+      const difficultyText = level.difficulty.charAt(0).toUpperCase() + level.difficulty.slice(1);
+      
+      let bestMovesDisplay = '';
+      if (bestMoves) {
+        const stars = bestMoves === level.maxMoves ? '★' : 
+                      bestMoves <= level.maxMoves * 0.7 ? '★★★' :
+                      bestMoves <= level.maxMoves * 0.85 ? '★★' : '★';
+        bestMovesDisplay = `<div style="font-size:12px; color:#2b7; margin-top:4px; font-weight:700;">Best: ${bestMoves} moves ${stars}</div>`;
+      }
+      
+      card.innerHTML = `
+        <div class="campaign-level-number">Level ${level.id}</div>
+        <div class="campaign-level-status">${completed ? '✓ Completed' : unlocked ? 'Available' : '🔒 Locked'}</div>
+        <div style="font-size:11px; color:#666; margin-top:4px;">Max: ${level.maxMoves} moves</div>
+        ${bestMovesDisplay}
+        <div class="difficulty-label ${difficultyClass}">${difficultyText}</div>
+      `;
+      
+      if (unlocked) {
+        card.onclick = () => startCampaignLevel(level.id, mode);
+      }
+      
+      grid.appendChild(card);
+    });
+  }
+
+  function startCampaignLevel(levelId, mode = 'normal') {
+    const levels = CAMPAIGN_LEVELS;
+    const level = levels.find(l => l.id === levelId);
+    if (!level) return;
+    
+    currentCampaignLevel = levelId;
+    currentCampaignMode = mode;
+    maxMovesForLevel = level.maxMoves;
+    board = level.board.map(row => [...row]);
+    selected = null;
+    campaignMoves = 0;
+    campaignEliminated = 0;
+    campaignStartTime = null;
+    currentMode = 'campaignPlay';
+    
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('campaignPlayView').classList.add('active');
+    
+    updateCampaignScore();
+    renderBoard('campaign');
+    showMsg('campaign', `Level ${levelId}: ${level.name}`);
+  }
+
+  function updateCampaignScore() {
+    const remaining = getRemainingPairs();
+    const levels = CAMPAIGN_LEVELS;
+    const levelName = levels.find(l => l.id === currentCampaignLevel)?.name || '';
+    const movesLeft = maxMovesForLevel ? maxMovesForLevel - campaignMoves : '∞';
+    
+    let movesDisplay = '';
+    if (maxMovesForLevel) {
+      const movesColor = movesLeft <= 3 ? '#e74' : movesLeft <= 5 ? '#fb5607' : '#2b7';
+      movesDisplay = `<span style="color:${movesColor}; font-weight:800;">${movesLeft}</span>/${maxMovesForLevel}`;
+    } else {
+      movesDisplay = campaignMoves;
+    }
+    
+    document.getElementById('campaignScore').innerHTML = `Level ${currentCampaignLevel}: ${levelName} | Moves: ${movesDisplay} | Remaining: ${remaining} pairs`;
+  }
+
+  document.getElementById('campaignBackBtn').onclick = () => {
+    playClickSound();
+    switchView('campaign');
+    renderCampaignGrid(currentCampaignMode);
+  };
+
+  document.getElementById('campaignRestartBtn').onclick = () => {
+    playClickSound();
+    if (currentCampaignLevel) {
+      startCampaignLevel(currentCampaignLevel, currentCampaignMode);
+    }
+  };
 
   function switchView(view, preserveBoard = false){
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(view + 'View').classList.add('active');
     currentView = view;
     
-    const allBtns = document.querySelectorAll('#playModeBtn, #endlessModeBtn, #editorModeBtn, #loadLevelBtn, #aboutBtn');
+    const allBtns = document.querySelectorAll('#campaignModeBtn, #playModeBtn, #endlessModeBtn, #editorModeBtn, #loadLevelBtn, #aboutBtn');
     allBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.classList.add('secondary');
     });
     
-    const btnMap = {play: 'playModeBtn', endless: 'endlessModeBtn', editor: 'editorModeBtn', load: 'loadLevelBtn', about: 'aboutBtn'};
+    const btnMap = {
+      campaign: 'campaignModeBtn',
+      play: 'playModeBtn',
+      endless: 'endlessModeBtn',
+      editor: 'editorModeBtn',
+      load: 'loadLevelBtn',
+      about: 'aboutBtn'
+    };
     const activeBtn = document.getElementById(btnMap[view]);
-    activeBtn.classList.remove('secondary');
-    activeBtn.classList.add('active');
+    if (activeBtn) {
+      activeBtn.classList.remove('secondary');
+      activeBtn.classList.add('active');
+    }
     
-    const indicators = {play: 'Game Mode', endless: 'Endless Mode', editor: 'Level Editor', load: 'Load Level', about: 'About'};
+    const indicators = {
+      campaign: 'Campaign Mode',
+      play: 'Random Mode',
+      endless: 'Endless Mode',
+      editor: 'Level Editor',
+      load: 'Load Level',
+      about: 'About'
+    };
     document.getElementById('modeIndicator').textContent = indicators[view];
     
-    if (view === 'play') {
+    if (view === 'campaign') {
+      currentMode = 'campaign';
+      renderCampaignGrid(currentCampaignMode);
+    } else if (view === 'play') {
       currentMode = 'play';
-      if(!preserveBoard){ resetRandom(); } 
-      else { renderBoard('play'); }
+      if(!preserveBoard){ 
+        resetRandom(); 
+      } else { 
+        renderBoard('play'); 
+        updatePlayScore();
+      }
     } else if (view === 'endless') {
       currentMode = 'endless';
     } else if (view === 'editor') {
@@ -492,19 +984,24 @@
     }
   }
 
-  document.getElementById('playModeBtn').onclick = () => switchView('play');
+  document.getElementById('campaignModeBtn').onclick = () => { playClickSound(); switchView('campaign'); };
+  
+  document.getElementById('playModeBtn').onclick = () => { playClickSound(); switchView('play'); };
   document.getElementById('endlessModeBtn').onclick = () => {
+    playClickSound();
     switchView('endless');
     showMsg('endless', 'Select difficulty and click "Start Game"');
   };
-  document.getElementById('editorModeBtn').onclick = () => switchView('editor');
+  document.getElementById('editorModeBtn').onclick = () => { playClickSound(); switchView('editor'); };
   document.getElementById('loadLevelBtn').onclick = () => {
+    playClickSound();
     switchView('load');
     loadSavedLevels();
   };
-  document.getElementById('aboutBtn').onclick = () => switchView('about');
+  document.getElementById('aboutBtn').onclick = () => { playClickSound(); switchView('about'); };
 
   document.getElementById('hardModeBtn').onclick = () => {
+    playClickSound();
     playHardMode = !playHardMode;
     updateHardModeButton('hardModeBtn', playHardMode);
     playMoves = 0;
@@ -514,11 +1011,13 @@
   };
   
   document.getElementById('endlessHardModeBtn').onclick = () => {
+    playClickSound();
     endlessHardMode = !endlessHardMode;
     updateHardModeButton('endlessHardModeBtn', endlessHardMode);
   };
   
   document.getElementById('editorHardModeBtn').onclick = () => {
+    playClickSound();
     editorHardMode = !editorHardMode;
     updateHardModeButton('editorHardModeBtn', editorHardMode);
     editorMoves = 0;
@@ -535,6 +1034,7 @@
   
   document.querySelectorAll('.difficulty-btn').forEach(btn => {
     btn.onclick = () => {
+      playClickSound();
       document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       endlessRefreshSteps = parseInt(btn.dataset.steps);
@@ -542,6 +1042,7 @@
   });
 
   function resetRandom(){
+    playClickSound();
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     const pairs = [1,2,3,4,5];
     pairs.forEach(t => placeRandomPair(t));
@@ -549,6 +1050,7 @@
     playMoves = 0;
     playEliminated = 0;
     playStartTime = null;
+    maxMovesForLevel = null;
     updatePlayScore();
     renderBoard('play');
     showMsg('play', 'Random level generated');
@@ -582,16 +1084,37 @@
   function updatePlayScore() {
     const remaining = getRemainingPairs();
     const hardBadge = playHardMode ? '<span class="mode-badge hard">Hard</span>' : '';
-    document.getElementById('playScore').innerHTML = `Moves: ${playMoves} | Remaining: ${remaining} pairs${hardBadge}`;
+    
+    let movesDisplay = '';
+    if (maxMovesForLevel) {
+      const movesLeft = maxMovesForLevel - playMoves;
+      const movesColor = movesLeft <= 3 ? '#e74' : movesLeft <= 5 ? '#fb5607' : '#2b7';
+      movesDisplay = `<span style="color:${movesColor}; font-weight:800;">${movesLeft}</span>/${maxMovesForLevel}`;
+    } else {
+      movesDisplay = playMoves;
+    }
+    
+    document.getElementById('playScore').innerHTML = `Moves: ${movesDisplay} | Remaining: ${remaining} pairs${hardBadge}`;
   }
   
   function updateEditorScore() {
     const remaining = getRemainingPairs();
     const hardBadge = editorHardMode ? '<span class="mode-badge hard">Hard</span>' : '';
-    document.getElementById('editorScore').innerHTML = `Moves: ${editorMoves} | Remaining: ${remaining} pairs${hardBadge}`;
+    
+    let movesDisplay = '';
+    if (editorMaxMoves) {
+      const movesLeft = editorMaxMoves - editorMoves;
+      const movesColor = movesLeft <= 3 ? '#e74' : movesLeft <= 5 ? '#fb5607' : '#2b7';
+      movesDisplay = `<span style="color:${movesColor}; font-weight:800;">${movesLeft}</span>/${editorMaxMoves}`;
+    } else {
+      movesDisplay = editorMoves;
+    }
+    
+    document.getElementById('editorScore').innerHTML = `Moves: ${movesDisplay} | Remaining: ${remaining} pairs${hardBadge}`;
   }
 
   function startEndless(){
+    playClickSound();
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     placeRandomPair(1);
     placeRandomPair(2);
@@ -670,6 +1193,7 @@
 
   document.getElementById('endlessStartBtn').onclick = startEndless;
   document.getElementById('endlessRestartBtn').onclick = () => {
+    playClickSound();
     document.getElementById('endlessStartBtn').style.display = 'inline-block';
     document.getElementById('endlessRestartBtn').style.display = 'none';
     showMsg('endless', 'Select difficulty and click "Start Game"');
@@ -684,6 +1208,9 @@
     editorMoves = 0;
     editorEliminated = 0;
     editorStartTime = null;
+    editorMaxMoves = null;
+    savedEditorBoard = null;
+    document.getElementById('maxMovesInput').value = '';
     updateEditorButtons();
     updateNextBlockPreview();
     updateCapacityInfo();
@@ -762,7 +1289,9 @@
   }
 
   document.getElementById('placeBtn').onclick = () => {
+    playClickSound();
     if(!canPlaceMoreBlocks()){
+      playErrorSound();
       showMsg('editor', 'Board is full');
       return;
     }
@@ -773,6 +1302,7 @@
   };
 
   document.getElementById('deleteBtn').onclick = () => {
+    playClickSound();
     editorMode = 'delete';
     placingBlock = null;
     updateEditorButtons();
@@ -781,6 +1311,7 @@
 
   document.getElementById('clearBtn').onclick = () => {
     if(countBlocks() > 0 && !confirm('Clear entire board?')) return;
+    playClickSound();
     board = Array.from({length:SIZE}, ()=> Array(SIZE).fill(0));
     editorMode = 'place';
     placingBlock = null;
@@ -803,15 +1334,23 @@
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
+        playErrorSound();
         showMsg('editor', `Error: Block ${type} has only ${typeCounts[type]} piece(s)`);
         return;
       }
     }
     
     if(countBlocks() === 0){
+      playErrorSound();
       showMsg('editor', 'Board is empty');
       return;
     }
+    
+    playClickSound();
+    savedEditorBoard = board.map(row => [...row]);
+    
+    const maxMovesInput = document.getElementById('maxMovesInput').value;
+    editorMaxMoves = maxMovesInput ? parseInt(maxMovesInput) : null;
     
     currentMode = 'editorTest';
     selected = null;
@@ -823,6 +1362,7 @@
     document.getElementById('testBtn').style.display = 'none';
     document.getElementById('saveBtn').style.display = 'none';
     document.getElementById('nextBlockPreview').parentElement.style.display = 'none';
+    document.getElementById('maxMovesInput').parentElement.style.display = 'none';
     document.getElementById('backToEditBtn').style.display = 'inline-block';
     document.getElementById('editorHardModeBtn').style.display = 'inline-block';
     document.getElementById('clearBtn').style.display = 'none';
@@ -830,21 +1370,29 @@
     updateEditorScore();
     
     renderBoard('editor');
-    showMsg('editor', 'Test mode');
+    showMsg('editor', 'Test mode' + (editorMaxMoves ? ` - ${editorMaxMoves} moves limit` : ''));
   };
 
   document.getElementById('backToEditBtn').onclick = () => {
+    playClickSound();
+    if(savedEditorBoard) {
+      board = savedEditorBoard.map(row => [...row]);
+      savedEditorBoard = null;
+    }
+    
     document.getElementById('placeBtn').style.display = 'inline-block';
     document.getElementById('deleteBtn').style.display = 'inline-block';
     document.getElementById('testBtn').style.display = 'inline-block';
     document.getElementById('saveBtn').style.display = 'inline-block';
     document.getElementById('nextBlockPreview').parentElement.style.display = 'block';
+    document.getElementById('maxMovesInput').parentElement.style.display = 'flex';
     document.getElementById('backToEditBtn').style.display = 'none';
     document.getElementById('editorHardModeBtn').style.display = 'none';
     document.getElementById('clearBtn').style.display = 'inline-block';
     document.getElementById('editorScore').style.display = 'none';
     
     currentMode = 'editor';
+    selected = null;
     updateEditorButtons();
     updateNextBlockPreview();
     updateCapacityInfo();
@@ -863,15 +1411,18 @@
     
     for(let type in typeCounts){
       if(typeCounts[type] !== 2){
+        playErrorSound();
         showMsg('editor', `Error: Block ${type} has only ${typeCounts[type]} piece(s)`);
         return;
       }
     }
     
     if(countBlocks() === 0){
+      playErrorSound();
       showMsg('editor', 'Board is empty');
       return;
     }
+    playClickSound();
     document.getElementById('saveArea').style.display = 'block';
     document.getElementById('levelName').focus();
   };
@@ -883,11 +1434,15 @@
       return;
     }
     
+    const maxMovesInput = document.getElementById('maxMovesInput').value;
+    const maxMoves = maxMovesInput ? parseInt(maxMovesInput) : null;
+    
     const levels = JSON.parse(localStorage.getItem('customLevels') || '[]');
     levels.push({
       id: Date.now(),
       name: name,
       board: JSON.stringify(board),
+      maxMoves: maxMoves,
       createdAt: new Date().toLocaleString('en-US')
     });
     localStorage.setItem('customLevels', JSON.stringify(levels));
@@ -915,9 +1470,10 @@
     levels.forEach(level => {
       const item = document.createElement('div');
       item.className = 'level-item';
+      const movesInfo = level.maxMoves ? ` (${level.maxMoves} moves)` : '';
       item.innerHTML = `
         <div>
-          <div style="font-weight:600;">${level.name}</div>
+          <div style="font-weight:600;">${level.name}${movesInfo}</div>
           <div style="font-size:11px; color:#999;">${level.createdAt}</div>
         </div>
         <div>
@@ -938,11 +1494,12 @@
       playMoves = 0;
       playEliminated = 0;
       playStartTime = null;
+      maxMovesForLevel = level.maxMoves || null;
       switchView('play', true);
       currentMode = 'play';
       updatePlayScore();
       renderBoard('play');
-      showMsg('play', `Loaded level: ${level.name}`);
+      showMsg('play', `Loaded level: ${level.name}` + (level.maxMoves ? ` (${level.maxMoves} moves limit)` : ''));
     }
   };
 
@@ -982,6 +1539,7 @@
     if(currentMode === 'editor'){
       if(editorMode === 'delete'){
         if(board[y][x] !== 0){
+          playClickSound();
           const deletedType = board[y][x];
           for(let dy=0; dy<SIZE; dy++){
             for(let dx=0; dx<SIZE; dx++){
@@ -999,21 +1557,25 @@
         }
       } else {
         if(board[y][x] !== 0){
+          playErrorSound();
           showMsg('editor', 'Cell already has a block');
           return;
         }
         
         if(!canPlaceMoreBlocks() && !placingBlock){
+          playErrorSound();
           showMsg('editor', 'Board is full');
           return;
         }
         
         if(!placingBlock){
+          playClickSound();
           placingBlock = {type: nextBlockNumber, firstPos: {x, y}};
           board[y][x] = nextBlockNumber;
           showMsg('editor', `Placed first block ${nextBlockNumber}`);
           renderBoard('editor');
         } else {
+          playClickSound();
           board[y][x] = placingBlock.type;
           showMsg('editor', `Completed pair for block ${placingBlock.type}`);
           nextBlockNumber++;
@@ -1031,6 +1593,7 @@
         renderBoard(mode);
         return;
       }
+      playSelectSound();
       selected={x,y};
       renderBoard(mode);
       showMsg(mode, `Selected block ${v}`);
@@ -1090,12 +1653,213 @@
     
     const timeStr = formatTime(elapsedTime);
     const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
-                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') : '';
+                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') :
+                     mode === 'campaign' ? '' : '';
+    
+    let buttons = '<button onclick="closeModal()">OK</button>';
+    
+    if (mode === 'campaign' && currentCampaignLevel) {
+      markLevelCompleted(currentCampaignLevel, currentCampaignMode);
+      const isNewRecord = updateBestMoves(currentCampaignLevel, moves, currentCampaignMode);
+      
+      const levels = CAMPAIGN_LEVELS;
+      
+      if (currentCampaignLevel < levels.length) {
+        buttons = `
+          <button onclick="closeModalAndNextLevel()">Next Level →</button>
+          <button onclick="closeModalAndRestart()" class="secondary">Restart</button>
+          <button onclick="closeModalAndBackToLevels()" class="secondary">Level Select</button>
+        `;
+      } else {
+        buttons = `
+          <button onclick="closeModalAndBackToLevels()">Back to Levels</button>
+          <button onclick="closeModalAndRestart()" class="secondary">Replay</button>
+        `;
+      }
+    }
+    
+    let movesInfo = '';
+    if (mode === 'campaign' && maxMovesForLevel) {
+      const movesUsed = moves;
+      const movesTotal = maxMovesForLevel;
+      const bestMoves = getBestMoves(currentCampaignLevel, currentCampaignMode);
+      const isNewRecord = bestMoves === moves;
+      const stars = moves === maxMovesForLevel ? '★' : 
+                    moves <= maxMovesForLevel * 0.7 ? '★★★' :
+                    moves <= maxMovesForLevel * 0.85 ? '★★' : '★';
+      
+      movesInfo = `
+        <div class="stat-item">
+          <span class="stat-label">Moves:</span>
+          <span class="stat-value">${movesUsed}/${movesTotal} ${stars} ${isNewRecord ? '🏆 NEW BEST!' : ''}</span>
+        </div>
+      `;
+    } else if ((mode === 'play' && maxMovesForLevel) || (mode === 'editorTest' && editorMaxMoves)) {
+      const movesLimit = mode === 'play' ? maxMovesForLevel : editorMaxMoves;
+      movesInfo = `
+        <div class="stat-item">
+          <span class="stat-label">Moves:</span>
+          <span class="stat-value">${moves}/${movesLimit}</span>
+        </div>
+      `;
+    } else {
+      movesInfo = `
+        <div class="stat-item">
+          <span class="stat-label">Moves:</span>
+          <span class="stat-value">${moves}</span>
+        </div>
+      `;
+    }
     
     modal.innerHTML = `
       <h2>Victory${modeText}</h2>
       <p>Successfully eliminated all blocks!</p>
-      <button onclick="closeModal()">OK</button>
+      ${buttons}
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">Time:</span>
+          <span class="stat-value">${timeStr}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Eliminated:</span>
+          <span class="stat-value">${eliminated} pairs</span>
+        </div>
+        ${movesInfo}
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    window.closeModal = function() {
+      overlay.remove();
+    };
+    
+    window.closeModalAndNextLevel = function() {
+      overlay.remove();
+      if (currentCampaignLevel < CAMPAIGN_LEVELS.length) {
+        startCampaignLevel(currentCampaignLevel + 1, currentCampaignMode);
+      }
+    };
+    
+    window.closeModalAndRestart = function() {
+      overlay.remove();
+      if (currentCampaignLevel) {
+        startCampaignLevel(currentCampaignLevel, currentCampaignMode);
+      }
+    };
+    
+    window.closeModalAndBackToLevels = function() {
+      overlay.remove();
+      switchView('campaign');
+      renderCampaignGrid(currentCampaignMode);
+    };
+  }
+  
+  function showMovesExceededModal(moves, eliminated, elapsedTime, mode = 'campaign') {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal gameover';
+    
+    const timeStr = formatTime(elapsedTime);
+    const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') :
+                     currentCampaignMode === 'hard' ? ' [HARD MODE]' : '';
+    
+    const movesLimit = mode === 'play' ? maxMovesForLevel : 
+                      mode === 'editorTest' ? editorMaxMoves : 
+                      maxMovesForLevel;
+    
+    let buttons = '<button onclick="closeModal()">OK</button>';
+    
+    if (mode === 'campaign' && currentCampaignLevel) {
+      buttons = `
+        <button onclick="closeModalAndRestart()">Retry Level</button>
+        <button onclick="closeModalAndBackToLevels()" class="secondary">Level Select</button>
+      `;
+    } else if (mode === 'editorTest') {
+      buttons = `
+        <button onclick="closeModal()">OK</button>
+      `;
+    }
+    
+    modal.innerHTML = `
+      <h2>Out of Moves${modeText}</h2>
+      <p>You've used all ${movesLimit} moves!</p>
+      ${buttons}
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">Time:</span>
+          <span class="stat-value">${timeStr}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Eliminated:</span>
+          <span class="stat-value">${eliminated} pairs</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Moves Used:</span>
+          <span class="stat-value">${moves}/${movesLimit}</span>
+        </div>
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    window.closeModal = function() {
+      overlay.remove();
+    };
+    
+    window.closeModalAndRestart = function() {
+      overlay.remove();
+      if (currentCampaignLevel) {
+        startCampaignLevel(currentCampaignLevel, currentCampaignMode);
+      }
+    };
+    
+    window.closeModalAndBackToLevels = function() {
+      overlay.remove();
+      switchView('campaign');
+      renderCampaignGrid(currentCampaignMode);
+    };
+  }
+  
+  function showGameOverModal(mode, moves, eliminated, elapsedTime) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal gameover';
+    
+    const timeStr = formatTime(elapsedTime);
+    
+    let reason = '';
+    if(mode === 'endless') {
+      reason = '<p>Cannot add new blocks!</p>';
+    } else {
+      reason = '<p>No valid moves available!</p>';
+    }
+    
+    const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
+                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') :
+                     mode === 'endless' ? (endlessHardMode ? ' [Hard Mode]' : '') :
+                     mode === 'campaign' ? (campaignHardMode ? ' [Hard Mode]' : '') : '';
+    
+    let buttons = '<button onclick="closeModal()">OK</button>';
+    
+    if (mode === 'campaign' && currentCampaignLevel) {
+      buttons = `
+        <button onclick="closeModalAndRestart()">Restart Level</button>
+        <button onclick="closeModalAndBackToLevels()" class="secondary">Level Select</button>
+      `;
+    }
+    
+    modal.innerHTML = `
+      <h2>Game Over${modeText}</h2>
+      ${reason}
+      ${buttons}
       <div class="stats">
         <div class="stat-item">
           <span class="stat-label">Time:</span>
@@ -1118,53 +1882,17 @@
     window.closeModal = function() {
       overlay.remove();
     };
-  }
-  
-  function showGameOverModal(mode, moves, eliminated, elapsedTime) {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
     
-    const modal = document.createElement('div');
-    modal.className = 'modal gameover';
-    
-    const timeStr = formatTime(elapsedTime);
-    
-    let reason = '';
-    if(mode === 'endless') {
-      reason = '<p>Cannot add new blocks!</p>';
-    } else {
-      reason = '<p>No valid moves available!</p>';
-    }
-    
-    const modeText = mode === 'play' ? (playHardMode ? ' [Hard Mode]' : '') : 
-                     mode === 'editorTest' ? (editorHardMode ? ' [Hard Mode]' : '') :
-                     mode === 'endless' ? (endlessHardMode ? ' [Hard Mode]' : '') : '';
-    
-    modal.innerHTML = `
-      <h2>Game Over${modeText}</h2>
-      ${reason}
-      <button onclick="closeModal()">OK</button>
-      <div class="stats">
-        <div class="stat-item">
-          <span class="stat-label">Time:</span>
-          <span class="stat-value">${timeStr}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Eliminated:</span>
-          <span class="stat-value">${eliminated} pairs</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Moves:</span>
-          <span class="stat-value">${moves}</span>
-        </div>
-      </div>
-    `;
-    
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    window.closeModal = function() {
+    window.closeModalAndRestart = function() {
       overlay.remove();
+      if (currentCampaignLevel) {
+        startCampaignLevel(currentCampaignLevel);
+      }
+    };
+    
+    window.closeModalAndBackToLevels = function() {
+      overlay.remove();
+      switchView('campaign');
     };
   }
 
@@ -1220,6 +1948,34 @@
       block.style.top = toPos.top + 'px';
       
       setTimeout(resolve, duration);
+    });
+  }
+  
+  function animateSwapDisappear(block, duration = 150) {
+    return new Promise(resolve => {
+      block.style.transition = `all ${duration}ms ease-in`;
+      block.style.transform = 'scale(0)';
+      block.style.opacity = '0';
+      
+      setTimeout(() => {
+        block.remove();
+        resolve();
+      }, duration);
+    });
+  }
+  
+  function animateSwapAppear(block, duration = 150) {
+    return new Promise(resolve => {
+      block.style.transform = 'scale(0)';
+      block.style.opacity = '0';
+      
+      setTimeout(() => {
+        block.style.transition = `all ${duration}ms ease-out`;
+        block.style.transform = 'scale(1)';
+        block.style.opacity = '1';
+        
+        setTimeout(resolve, duration);
+      }, 10);
     });
   }
   
@@ -1280,14 +2036,63 @@
     });
   }
   
-  function animateEliminate(block, duration = 300) {
+  function animateEliminate(block, duration = 500) {
     return new Promise(resolve => {
-      block.style.transition = `all ${duration}ms ease-in`;
-      block.style.transform = 'scale(1.2)';
+      const blockRect = block.getBoundingClientRect();
+      const boardEl = block.parentElement;
+      const boardRect = boardEl.getBoundingClientRect();
+      
+      const blockLeft = blockRect.left - boardRect.left;
+      const blockTop = blockRect.top - boardRect.top;
+      const blockWidth = blockRect.width;
+      const blockHeight = blockRect.height;
+      
+      const blockColor = window.getComputedStyle(block).backgroundColor;
+      
+      // 增加粒子数量到50个
+      const particleCount = 50;
+      const particles = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        const size = 3 + Math.random() * 5;
+        particle.style.position = 'absolute';
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.borderRadius = '50%';
+        particle.style.backgroundColor = blockColor;
+        
+        // 粒子从方块内随机位置开始
+        const startX = blockLeft + Math.random() * blockWidth;
+        const startY = blockTop + Math.random() * blockHeight;
+        particle.style.left = startX + 'px';
+        particle.style.top = startY + 'px';
+        particle.style.pointerEvents = 'none';
+        particle.style.zIndex = '160';
+        boardEl.appendChild(particle);
+        particles.push(particle);
+        
+        // 水平随机扩散
+        const tx = (Math.random() - 0.5) * 90;
+        // 下落距离
+        const ty = 70 + Math.random() * 50;
+        
+        particle.style.transition = `all ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        
+        setTimeout(() => {
+          particle.style.transform = `translate(${tx}px, ${ty}px) scale(0)`;
+          particle.style.opacity = '0';
+        }, 20);
+      }
+      
+      // 方块缩小并透明消失
+      block.style.transition = `all ${duration * 0.5}ms ease-in`;
+      block.style.transform = 'scale(0)';
       block.style.opacity = '0';
       
       setTimeout(() => {
         block.remove();
+        particles.forEach(p => p.remove());
         resolve();
       }, duration);
     });
@@ -1308,6 +2113,7 @@
             if (block) animatedBlocks.set(action.blockType, block);
           }
           if (block) {
+            playSlideSound();
             await animateSlide(block, action.fromX, action.fromY, action.toX, action.toY, mode);
           }
           break;
@@ -1320,6 +2126,7 @@
             if (block) animatedBlocks.set(action.blockType, block);
           }
           if (block) {
+            playSlideSound();
             await animateSlideInto(block, action.fromX, action.fromY, action.toX, action.toY, mode);
           }
           break;
@@ -1328,6 +2135,7 @@
         case 'slideOut': {
           const block = animatedBlocks.get(action.blockType);
           if (block) {
+            playSlideSound();
             await animateSlideOut(block, action.fromX, action.fromY, action.toX, action.toY, mode);
           }
           break;
@@ -1336,6 +2144,7 @@
         case 'teleport': {
           const block = animatedBlocks.get(action.blockType);
           if (block) {
+            playTeleportSound();
             await animateTeleportInto(block, action.toX, action.toY, mode, 100);
           }
           break;
@@ -1344,16 +2153,41 @@
         case 'teleportInto': {
           const block = animatedBlocks.get(action.blockType);
           if (block) {
+            playTeleportSound();
             await animateTeleportInto(block, action.toX, action.toY, mode);
           }
           break;
         }
         
         case 'slideOutAndEliminate': {
-          const block = animatedBlocks.get(action.blockType);
-          if (block) {
-            await animateSlideOut(block, action.fromX, action.fromY, action.toX, action.toY, mode, 150);
-            await animateEliminate(block);
+          const movingBlock = animatedBlocks.get(action.blockType);
+          
+          if (movingBlock) {
+            playSlideSound();
+            // 确保移动方块在最上层
+            movingBlock.style.zIndex = '140';
+            
+            // 滑出动画
+            await animateSlideOut(movingBlock, action.fromX, action.fromY, action.toX, action.toY, mode, 150);
+            
+            // 滑出后，为目标位置创建方块（被碰撞的方块），层次低一些
+            const targetBlock = createAnimatedBlock(action.toX, action.toY, action.blockType, mode);
+            if (targetBlock) {
+              targetBlock.style.zIndex = '110';
+            }
+            
+            // 等待目标方块渲染
+            await new Promise(resolve => setTimeout(resolve, 10));
+            
+            playEliminateSound();
+            
+            // 两个方块同时消除
+            const animations = [animateEliminate(movingBlock)];
+            if (targetBlock) {
+              animations.push(animateEliminate(targetBlock));
+            }
+            
+            await Promise.all(animations);
             animatedBlocks.delete(action.blockType);
           }
           break;
@@ -1361,10 +2195,25 @@
         
         case 'eliminate': {
           const block = animatedBlocks.get(action.blockType);
+          playEliminateSound();
+          
+          const animations = [];
+          
           if (block) {
-            await animateEliminate(block);
+            animations.push(animateEliminate(block));
             animatedBlocks.delete(action.blockType);
           }
+          
+          // 为被碰撞的另一个方块也创建粒子动画
+          if (action.x2 !== undefined && action.y2 !== undefined) {
+            const block2 = createAnimatedBlock(action.x2, action.y2, action.blockType, mode);
+            if (block2) {
+              animations.push(animateEliminate(block2));
+            }
+          }
+          
+          // 两个方块同时播放动画
+          await Promise.all(animations);
           break;
         }
         
@@ -1409,17 +2258,7 @@
         }
         
         case 'swap': {
-          const movingBlock = animatedBlocks.get(action.movingType);
-          const swapBlock = createAnimatedBlock(action.swapX, action.swapY, action.swapType, mode);
-          
-          if (movingBlock && swapBlock) {
-            await Promise.all([
-              animateSlide(movingBlock, action.movingX, action.movingY, action.swapX, action.swapY, mode, 250),
-              animateSlide(swapBlock, action.swapX, action.swapY, action.movingX, action.movingY, mode, 250)
-            ]);
-            movingBlock.remove();
-            swapBlock.remove();
-          }
+          // 暂时没有动画，直接跳过
           break;
         }
       }
@@ -1431,25 +2270,35 @@
 
   function slideSelected(dirKey){
     if(!selected) return;
-    if(currentMode !== 'play' && currentMode !== 'editorTest' && currentMode !== 'endless') return;
+    if(currentMode !== 'play' && currentMode !== 'editorTest' && currentMode !== 'endless' && currentMode !== 'campaignPlay') return;
     if(currentMode === 'endless' && endlessGameOver) return;
     if(isAnimating) return;
     
     const dir = DIRS[dirKey];
     if(!dir) return;
     
-    const renderMode = currentMode === 'editorTest' ? 'editor' : currentMode;
+    const renderMode = currentMode === 'editorTest' ? 'editor' : 
+                       currentMode === 'campaignPlay' ? 'campaign' : currentMode;
     const sx = selected.x, sy = selected.y;
     const sType = board[sy][sx];
 
     const nx = sx + dir.x, ny = sy + dir.y;
-    if(!inside(nx,ny)){ showMsg(renderMode, 'Cannot slide out of bounds'); return; }
-    if(board[ny][nx]===0){ showMsg(renderMode, 'Cannot slide to empty cell'); return; }
+    if(!inside(nx,ny)){ 
+      playErrorSound();
+      showMsg(renderMode, 'Cannot slide out of bounds'); 
+      return; 
+    }
+    if(board[ny][nx]===0){ 
+      playErrorSound();
+      showMsg(renderMode, 'Cannot slide to empty cell'); 
+      return; 
+    }
 
     const neighborType = board[ny][nx];
     
     const isHard = currentMode === 'play' ? playHardMode : 
-                   currentMode === 'editorTest' ? editorHardMode : 
+                   currentMode === 'editorTest' ? editorHardMode :
+                   currentMode === 'campaignPlay' ? campaignHardMode :
                    endlessHardMode;
 
     if(neighborType === sType){
@@ -1461,6 +2310,8 @@
         editorStartTime = Date.now();
       } else if(currentMode === 'endless' && !endlessStartTime) {
         endlessStartTime = Date.now();
+      } else if(currentMode === 'campaignPlay' && !campaignStartTime) {
+        campaignStartTime = Date.now();
       }
       
       const actionSequence = [
@@ -1482,15 +2333,25 @@
         
         if(countBlocks() === 0 && currentMode !== 'endless'){
           const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
-                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
-          const moves = currentMode === 'play' ? playMoves : editorMoves;
-          const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) :
+                             currentMode === 'campaignPlay' ? (Date.now() - campaignStartTime) : 0;
+          const moves = currentMode === 'play' ? playMoves : 
+                       currentMode === 'editorTest' ? editorMoves :
+                       campaignMoves;
+          const eliminated = currentMode === 'play' ? playEliminated : 
+                            currentMode === 'editorTest' ? editorEliminated :
+                            campaignEliminated;
           showVictoryModal(renderMode, moves, eliminated, elapsedTime);
         } else if(checkDeadlock() && currentMode !== 'endless') {
           const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
-                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
-          const moves = currentMode === 'play' ? playMoves : editorMoves;
-          const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+                             currentMode === 'editorTest' ? (Date.now() - editorStartTime) :
+                             currentMode === 'campaignPlay' ? (Date.now() - campaignStartTime) : 0;
+          const moves = currentMode === 'play' ? playMoves : 
+                       currentMode === 'editorTest' ? editorMoves :
+                       campaignMoves;
+          const eliminated = currentMode === 'play' ? playEliminated : 
+                            currentMode === 'editorTest' ? editorEliminated :
+                            campaignEliminated;
           showGameOverModal(renderMode, moves, eliminated, elapsedTime);
         }
         
@@ -1504,6 +2365,7 @@
     const result = resolveTeleportChain(sx, sy, sType, nx, ny, dir, 0, movingBlockSet, sx, sy, null, actionSequence, isHard);
     
     if(!result.success){
+      playErrorSound();
       showMsg(renderMode, result.message);
       return;
     }
@@ -1516,6 +2378,8 @@
       editorStartTime = Date.now();
     } else if(currentMode === 'endless' && !endlessStartTime) {
       endlessStartTime = Date.now();
+    } else if(currentMode === 'campaignPlay' && !campaignStartTime) {
+      campaignStartTime = Date.now();
     }
     
     executeAnimationSequence(actionSequence, renderMode).then(() => {
@@ -1546,15 +2410,25 @@
       
       if(countBlocks() === 0 && currentMode !== 'endless'){
         const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
-                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
-        const moves = currentMode === 'play' ? playMoves : editorMoves;
-        const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) :
+                           currentMode === 'campaignPlay' ? (Date.now() - campaignStartTime) : 0;
+        const moves = currentMode === 'play' ? playMoves : 
+                     currentMode === 'editorTest' ? editorMoves :
+                     campaignMoves;
+        const eliminated = currentMode === 'play' ? playEliminated : 
+                          currentMode === 'editorTest' ? editorEliminated :
+                          campaignEliminated;
         showVictoryModal(renderMode, moves, eliminated, elapsedTime);
       } else if(checkDeadlock() && currentMode !== 'endless') {
         const elapsedTime = currentMode === 'play' ? (Date.now() - playStartTime) :
-                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) : 0;
-        const moves = currentMode === 'play' ? playMoves : editorMoves;
-        const eliminated = currentMode === 'play' ? playEliminated : editorEliminated;
+                           currentMode === 'editorTest' ? (Date.now() - editorStartTime) :
+                           currentMode === 'campaignPlay' ? (Date.now() - campaignStartTime) : 0;
+        const moves = currentMode === 'play' ? playMoves : 
+                     currentMode === 'editorTest' ? editorMoves :
+                     campaignMoves;
+        const eliminated = currentMode === 'play' ? playEliminated : 
+                          currentMode === 'editorTest' ? editorEliminated :
+                          campaignEliminated;
         showGameOverModal(renderMode, moves, eliminated, elapsedTime);
       }
       
@@ -1566,9 +2440,39 @@
     if(currentMode === 'play') {
       playMoves++;
       updatePlayScore();
+      
+      if(maxMovesForLevel && playMoves >= maxMovesForLevel) {
+        setTimeout(() => {
+          if(countBlocks() > 0 && !isAnimating) {
+            const elapsedTime = playStartTime ? Date.now() - playStartTime : 0;
+            showMovesExceededModal(playMoves, playEliminated, elapsedTime, 'play');
+          }
+        }, 100);
+      }
     } else if(currentMode === 'editorTest') {
       editorMoves++;
       updateEditorScore();
+      
+      if(editorMaxMoves && editorMoves >= editorMaxMoves) {
+        setTimeout(() => {
+          if(countBlocks() > 0 && !isAnimating) {
+            const elapsedTime = editorStartTime ? Date.now() - editorStartTime : 0;
+            showMovesExceededModal(editorMoves, editorEliminated, elapsedTime, 'editorTest');
+          }
+        }, 100);
+      }
+    } else if(currentMode === 'campaignPlay') {
+      campaignMoves++;
+      updateCampaignScore();
+      
+      if(maxMovesForLevel && campaignMoves >= maxMovesForLevel) {
+        setTimeout(() => {
+          if(countBlocks() > 0 && !isAnimating) {
+            const elapsedTime = campaignStartTime ? Date.now() - campaignStartTime : 0;
+            showMovesExceededModal(campaignMoves, campaignEliminated, elapsedTime);
+          }
+        }, 100);
+      }
     }
   }
   
@@ -1582,6 +2486,9 @@
     } else if(currentMode === 'endless') {
       endlessEliminated++;
       updateEndlessScore();
+    } else if(currentMode === 'campaignPlay') {
+      campaignEliminated++;
+      updateCampaignScore();
     }
   }
   
@@ -1821,7 +2728,8 @@
     const controlSets = [
       document.getElementById('playControls'),
       document.getElementById('endlessControls'),
-      document.getElementById('editorControls')
+      document.getElementById('editorControls'),
+      document.getElementById('campaignControls')
     ];
     
     controlSets.forEach(controlSet => {
@@ -1854,7 +2762,7 @@
     }
   });
 
-  resetRandom();
+  renderCampaignGrid(currentCampaignMode);
   setupVirtualControls();
 </script>
 </body>
