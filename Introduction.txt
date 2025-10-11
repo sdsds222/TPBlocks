@@ -1,0 +1,11 @@
+TPBlocks 是一款益智消除游戏。
+方块可以滑动，也可以通过同数字的传送方块瞬间移动到棋盘另一端。
+玩家需利用 传送、移动、阻塞与链式反应，巧妙安排每一步，让所有方块泯灭完成关卡。
+游戏特色：
+创新传送机制：方块可从入口滑入，从出口滑出，形成连锁消除。
+策略解谜：移动顺序和传送路径决定胜负。
+关卡编辑器：自定义关卡。
+Github仓库地址：https://github.com/sdsds222/TPBlocks
+在线Demo: 
+https://sdsds222.itch.io/tpblocks
+https://sdsds222.github.io/TPBlocks/
