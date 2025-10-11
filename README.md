@@ -5,6 +5,8 @@ https://sdsds222.itch.io/tpblocks
 
 https://sdsds222.github.io/TPBlocks/
 
+Game apk: https://github.com/sdsds222/TPBlocks/blob/main/TPblocks.apk
+
 Videos:
 
 [https://www.youtube.com/watch?v=EcubvqxEzGI&t=28s](https://youtu.be/EVvDsldqYJE)
