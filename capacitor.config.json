@@ -1,0 +1,16 @@
+{
+  "appId": "com.sdsds222.tpblocks",
+  "appName": "TPBlocks",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffffff",
+      "androidScaleType": "CENTER_CROP",
+      "splashFullScreen": true,
+      "splashImmersive": true,
+      "androidSplashResourceName": "splash"
+    }
+  }
+}

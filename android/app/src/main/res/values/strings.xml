@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TPBlocks</string>
+    <string name="title_activity_main">TPBlocks</string>
+    <string name="package_name">com.sdsds222.tpblocks</string>
+    <string name="custom_url_scheme">com.sdsds222.tpblocks</string>
+</resources>
